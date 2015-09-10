@@ -33,6 +33,7 @@ setup(
         'numpy',
         'scipy',
         'scikit-learn',
+        'pandas',
         'pescador',
         'librosa',
         'mir_eval',
