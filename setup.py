@@ -35,6 +35,8 @@ setup(
         'scikit-learn',
         'pescador',
         'librosa',
+        'mir_eval',
+        'jams',
         'lasagne',
     ],
     extras_require={
