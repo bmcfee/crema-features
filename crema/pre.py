@@ -31,7 +31,7 @@ class CQT(object):
     def extract(self, infile):
         '''Extract Constant-Q spectra from an input file'''
 
-        y, sr = librosa.load(infile, sr=self.sr)
+        y, sr = librosa.load(infile)
 
         return librosa.cqt(y,
                            n_bins=12 * self.n_octaves * self.over_sample,

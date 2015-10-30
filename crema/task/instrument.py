@@ -24,6 +24,10 @@ class InstrumentTransformer(BaseTaskTransformer):
         '''
 
         # Grab the data frame from the first matching annotation
+        # TODO
+        #   support multiple annotations per track
+        #   apply label encoder to values
+        #   sample values according to the target sampling rate/shape
         data = jam.search(namespace='tag_medleydb_instruments')[0].data
 
         # Convert the instrument activations to a matrix of activation functions
