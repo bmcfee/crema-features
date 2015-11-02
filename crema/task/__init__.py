@@ -3,4 +3,5 @@
 '''Task transformations'''
 
 from .base import *
+from .chord import *
 from .instrument import *

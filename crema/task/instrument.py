@@ -57,10 +57,10 @@ class InstrumentTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        annotation = jam.search(namespace=self.namespace)
+        anns = jam.search(namespace=self.namespace)
 
-        if annotation:
-            intervals, values = annotation.data.to_interval_values()
+        if anns:
+            intervals, values = anns[0].data.to_interval_values()
 
             # Suppress all intervals not in the encoder
             tags = []
