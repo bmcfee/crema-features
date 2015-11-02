@@ -66,9 +66,9 @@ class InstrumentTransformer(BaseTaskTransformer):
             tags = []
             for v in values:
                 if v in self._classes:
-                    tags.append(self.encoder.transform([[v]]))
+                    tags.extend(self.encoder.transform([[v]]))
                 else:
-                    tags.append(self.encoder.transform([[]]))
+                    tags.extend(self.encoder.transform([[]]))
 
             mask = 1
 
@@ -78,6 +78,7 @@ class InstrumentTransformer(BaseTaskTransformer):
             tags = [[]]
             mask = 0
 
+        tags = np.asarray(tags)
         target = self.encode_intervals(intervals, tags)
 
         return target, mask
