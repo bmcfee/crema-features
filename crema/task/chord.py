@@ -45,7 +45,7 @@ class ChordTransformer(BaseTaskTransformer):
 
                 if r in self._classes:
                     root.extend(self.encoder.transform([[r]]))
-                    bass.extend(self.encoder.transform([[r+b]]))
+                    bass.extend(self.encoder.transform([[(r+b) % 12]]))
                 else:
                     root.extend(self.encoder.transform([[]]))
                     bass.extend(self.encoder.transform([[]]))
