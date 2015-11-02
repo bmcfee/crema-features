@@ -3,15 +3,8 @@
 '''Feature pre-processing'''
 
 import numpy as np
-import librosa as _librosa
-import presets
 
-# Global DSP parameters via presets
-
-librosa = presets.Preset(_librosa)
-librosa['sr'] = 32768
-librosa['hop_length'] = 1024
-librosa['n_fft'] = 4096
+from .dsp import librosa
 
 
 class CQT(object):
@@ -33,7 +26,12 @@ class CQT(object):
 
         y, sr = librosa.load(infile)
 
-        return librosa.cqt(y,
-                           n_bins=12 * self.n_octaves * self.over_sample,
-                           bins_per_octave=12 * self.over_sample,
-                           fmin=self.fmin).T.astype(self.dtype)
+        CQT = librosa.cqt(y,
+                          n_bins=12 * self.n_octaves * self.over_sample,
+                          bins_per_octave=12 * self.over_sample,
+                          fmin=self.fmin).T.astype(self.dtype)
+
+        n_frames = librosa.get_duration(y)
+        CQT = CQT[:n_frames]
+
+        return CQT

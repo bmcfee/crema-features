@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''Convolutional REpresentations for Music Analysis'''
 
+from . import dsp
 from . import pre
 from . import task
 

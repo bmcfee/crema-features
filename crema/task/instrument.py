@@ -2,13 +2,33 @@
 # -*- encoding: utf-8 -*-
 '''Instrument recognition task transformer'''
 
-import pandas as pd
+import numpy as np
+
 from .base import BaseTaskTransformer
+from sklearn.preprocessing import MultiLabelBinarizer
+
+# Top 15 instruments by popularity in medleydb
+
+INSTRUMENTS = ['drum set',
+               'electric bass',
+               'piano',
+               'male singer',
+               'clean electric guitar',
+               'vocalists',
+               'synthesizer',
+               'female singer',
+               'acoustic guitar',
+               'distorted electric guitar',
+               'auxiliary percussion',
+               'double bass',
+               'violin',
+               'cello',
+               'flute']
 
 
 class InstrumentTransformer(BaseTaskTransformer):
 
-    def __init__(self, jam, n_samples, label_encoder):
+    def __init__(self, sr, hop_length, instruments=None):
         '''Initialize an instrument transformer
 
         Parameters
@@ -23,14 +43,41 @@ class InstrumentTransformer(BaseTaskTransformer):
             The (pre-constructed) label encoder
         '''
 
-        # Grab the data frame from the first matching annotation
-        # TODO
-        #   support multiple annotations per track
-        #   apply label encoder to values
-        #   sample values according to the target sampling rate/shape
-        data = jam.search(namespace='tag_medleydb_instruments')[0].data
+        super(InstrumentTransformer, self).__init__('tag_medleydb_instruments',
+                                                    sr,
+                                                    hop_length,
+                                                    0)
 
-        # Convert the instrument activations to a matrix of activation functions
+        if instruments is None:
+            instruments = INSTRUMENTS
 
-    def __getitem__(self, key):
-        pass
+        self.encoder = MultiLabelBinarizer()
+        self.encoder.fit([instruments])
+        self._classes = set(self.encoder.classes_)
+
+    def transform(self, jam):
+
+        annotation = jam.search(namespace=self.namespace)
+
+        if annotation:
+            intervals, values = annotation.data.to_interval_values()
+
+            # Suppress all intervals not in the encoder
+            tags = []
+            for v in values:
+                if v in self._classes:
+                    tags.append(self.encoder.transform([[v]]))
+                else:
+                    tags.append(self.encoder.transform([[]]))
+
+            mask = 1
+
+        else:
+            # Construct a blank annotation with mask = 0
+            intervals = np.asarray([[0.0, jam.file_metadata.duration]])
+            tags = [[]]
+            mask = 0
+
+        target = self.encode_intervals(intervals, tags)
+
+        return target, mask
