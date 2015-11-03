@@ -27,12 +27,12 @@ class BaseTaskTransformer(object):
 
         n_total = np.max(frames)
 
-        target = np.empty((n_total, values.shape[1]),
+        target = np.empty((values.shape[1], n_total),
                           dtype=values.dtype)
 
         target.fill(self.fill_na)
 
         for column, interval in zip(values, frames):
-            target[interval[0]:interval[1]] += column
+            target[:, interval[0]:interval[1]] += column[:, np.newaxis]
 
         return target

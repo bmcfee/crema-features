@@ -68,7 +68,9 @@ class ChordTransformer(BaseTaskTransformer):
         target_root = self.encode_intervals(intervals, root)
         target_bass = self.encode_intervals(intervals, bass)
 
-        target = np.stack([target_pitch, target_root, target_bass],
-                          axis=2)
+        target = np.stack([target_pitch,
+                           target_root,
+                           target_bass],
+                          axis=0)
 
         return target, mask
