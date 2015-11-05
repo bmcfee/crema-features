@@ -26,10 +26,10 @@ INSTRUMENTS = ['drum set',
                'flute']
 
 
-class InstrumentTransformer(BaseTaskTransformer):
+class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, sr, hop_length, instruments=None):
-        '''Initialize an instrument transformer
+    def __init__(self, namespace, sr, hop_length, labels=None):
+        '''Initialize a time-series label transformer
 
         Parameters
         ----------
@@ -43,16 +43,11 @@ class InstrumentTransformer(BaseTaskTransformer):
             The (pre-constructed) label encoder
         '''
 
-        super(InstrumentTransformer, self).__init__('tag_medleydb_instruments',
-                                                    sr,
-                                                    hop_length,
-                                                    0)
-
-        if instruments is None:
-            instruments = INSTRUMENTS
+        super(TimeSeriesLabelTransformer, self).__init__(namespace,
+                                                         sr, hop_length, 0)
 
         self.encoder = MultiLabelBinarizer()
-        self.encoder.fit([instruments])
+        self.encoder.fit([labels])
         self._classes = set(self.encoder.classes_)
 
     def transform(self, jam):
