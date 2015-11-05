@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''Instrument recognition task transformer'''
+'''Tag task transformers'''
 
 import numpy as np
 

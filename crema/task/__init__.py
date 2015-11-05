@@ -4,4 +4,4 @@
 
 from .base import *
 from .chord import *
-from .instrument import *
+from .tags import *
