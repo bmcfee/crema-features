@@ -28,14 +28,15 @@ class ChordTransformer(BaseTaskTransformer):
 
         anns = jam.search(namespace=self.namespace)
 
+        # Construct a blank annotation with mask = 0
+        intervals = np.asarray([[0.0, jam.file_metadata.duration]])
+        chords = ['N']
+        mask = False
         if anns:
-            intervals, chords = anns[0].data.to_interval_values()
-            mask = 1
-        else:
-            # Construct a blank annotation with mask = 0
-            intervals = np.asarray([[0.0, jam.file_metadata.duration]])
-            chords = ['N']
-            mask = 0
+            ann_ints, ann_chords = anns[0].data.to_interval_values()
+            intervals = np.vstack([intervals, ann_ints])
+            chords.extend(ann_chords)
+            mask = True
 
         # Suppress all intervals not in the encoder
         pitch = []
