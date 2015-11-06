@@ -36,7 +36,6 @@ setup(
         'pandas',
         'pescador>=0.1',
         'librosa>=0.4.1',
-        'mir_eval>=0.2',
         'jams>=0.2',
         'lasagne>=0.2',
         'presets>=0.1',
