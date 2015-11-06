@@ -54,24 +54,23 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
         anns = jam.search(namespace=self.namespace)
 
+        intervals = np.asarray([[0.0, jam.file_metadata.duration]])
+        values = [None]
+        mask = False
+
         if anns:
-            intervals, values = anns[0].data.to_interval_values()
+            ann_int, ann_val = anns[0].data.to_interval_values()
+            intervals = np.vstack([intervals, ann_int])
+            values.extend(ann_val)
+            mask = True
 
-            # Suppress all intervals not in the encoder
-            tags = []
-            for v in values:
-                if v in self._classes:
-                    tags.extend(self.encoder.transform([[v]]))
-                else:
-                    tags.extend(self.encoder.transform([[]]))
-
-            mask = 1
-
-        else:
-            # Construct a blank annotation with mask = 0
-            intervals = np.asarray([[0.0, jam.file_metadata.duration]])
-            tags = [[]]
-            mask = 0
+        # Suppress all intervals not in the encoder
+        tags = []
+        for v in values:
+            if v in self._classes:
+                tags.extend(self.encoder.transform([[v]]))
+            else:
+                tags.extend(self.encoder.transform([[]]))
 
         tags = np.asarray(tags)
         target = self.encode_intervals(intervals, tags)

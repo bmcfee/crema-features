@@ -28,37 +28,34 @@ class ChordTransformer(BaseTaskTransformer):
 
         anns = jam.search(namespace=self.namespace)
 
+        # Construct a blank annotation with mask = 0
+        intervals = np.asarray([[0.0, jam.file_metadata.duration]])
+        chords = ['N']
+        mask = False
         if anns:
-            intervals, chords = anns[0].data.to_interval_values()
+            ann_ints, ann_chords = anns[0].data.to_interval_values()
+            intervals = np.vstack([intervals, ann_ints])
+            chords.extend(ann_chords)
+            mask = True
 
-            # Suppress all intervals not in the encoder
-            pitch = []
-            root = []
-            bass = []
+        # Suppress all intervals not in the encoder
+        pitch = []
+        root = []
+        bass = []
 
-            for c in chords:
-                # Encode the pitches
-                r, s, b = mir_eval.chord.encode(c)
-                s = np.roll(s, r)
+        for c in chords:
+            # Encode the pitches
+            r, s, b = mir_eval.chord.encode(c)
+            s = np.roll(s, r)
 
-                pitch.append(s)
+            pitch.append(s)
 
-                if r in self._classes:
-                    root.extend(self.encoder.transform([[r]]))
-                    bass.extend(self.encoder.transform([[(r+b) % 12]]))
-                else:
-                    root.extend(self.encoder.transform([[]]))
-                    bass.extend(self.encoder.transform([[]]))
-
-            mask = 1
-
-        else:
-            # Construct a blank annotation with mask = 0
-            intervals = np.asarray([[0.0, jam.file_metadata.duration]])
-            pitch = [[]]
-            root = [[]]
-            bass = [[]]
-            mask = 0
+            if r in self._classes:
+                root.extend(self.encoder.transform([[r]]))
+                bass.extend(self.encoder.transform([[(r+b) % 12]]))
+            else:
+                root.extend(self.encoder.transform([[]]))
+                bass.extend(self.encoder.transform([[]]))
 
         pitch = np.asarray(pitch)
         root = np.asarray(root)
