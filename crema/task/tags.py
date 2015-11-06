@@ -60,7 +60,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
         if anns:
             ann_int, ann_val = anns[0].data.to_interval_values()
-            intervals.extend(ann_int)
+            intervals = np.vstack([intervals, ann_int])
             values.extend(ann_val)
             mask = True
 
