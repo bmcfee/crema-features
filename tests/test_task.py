@@ -7,7 +7,7 @@ import numpy as np
 
 import jams
 
-from nose.tools import raises, eq_
+from nose.tools import eq_
 
 
 def test_task_chord_present():
@@ -38,7 +38,10 @@ def test_task_chord_present():
     root = y[1]
     bass = y[2]
 
-    # Ideal vectors
+    # Ideal vectors:
+    # pcp = Cmaj, Cmaj, N, Dmaj
+    # root: C, C, N, D
+    # bass: C, E, N, D
     pcp_true = np.asarray([ [1, 1, 0, 0],
                             [0, 0, 0, 0],
                             [0, 0, 0, 1],
