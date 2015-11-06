@@ -101,3 +101,25 @@ def test_task_chord_absent():
 
     # Make sure it's empty
     assert not np.any(y)
+
+
+def test_task_tslabel_absent():
+    labels = ['alpha', 'beta', 'psycho', 'aqua', 'disco']
+
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+    T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
+                                              sr=1,
+                                              hop_length=1,
+                                              labels=labels)
+
+    y, mask = T.transform(jam)
+
+    # Mask should be false since we have no matching namespace
+    eq_(mask, False)
+
+    # Check the shape
+    assert np.allclose(y.shape, [len(labels), 4]), y.shape
+
+    # Make sure it's empty
+    assert not np.any(y)
+
