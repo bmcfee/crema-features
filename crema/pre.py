@@ -29,9 +29,9 @@ class CQT(object):
         CQT = librosa.cqt(y,
                           n_bins=12 * self.n_octaves * self.over_sample,
                           bins_per_octave=12 * self.over_sample,
-                          fmin=self.fmin).T.astype(self.dtype)
+                          fmin=self.fmin).astype(self.dtype)
 
-        n_frames = librosa.get_duration(y)
+        n_frames = librosa.time_to_frames(librosa.get_duration(y))
         CQT = CQT[:n_frames]
 
         return CQT
