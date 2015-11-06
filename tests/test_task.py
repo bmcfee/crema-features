@@ -81,3 +81,20 @@ def test_task_chord_present():
     assert np.allclose(pcp, pcp_true)
     assert np.allclose(root, root_true)
     assert np.allclose(bass, bass_true)
+
+
+def test_task_chord_absent():
+
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+    T = crema.task.ChordTransformer(sr=1, hop_length=1)
+
+    y, mask = T.transform(jam)
+
+    # Mask should be false since we have no matching namespace
+    eq_(mask, False)
+
+    # Check the shape
+    assert np.allclose(y.shape, [3, 12, 4])
+
+    # Make sure it's empty
+    assert not np.any(y)
