@@ -267,4 +267,3 @@ def test_task_vector_present():
             else:
                 tf = __test
             yield tf, target_d, data_d
-
