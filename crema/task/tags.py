@@ -73,6 +73,47 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
                 tags.extend(self.encoder.transform([[]]))
 
         tags = np.asarray(tags)
-        target = self.encode_intervals(intervals, tags)
+        target = self.encode_intervals(jam.file_metadata.duration,
+                                       intervals,
+                                       tags)
 
+        return target, mask
+
+
+class GlobalLabelTransformer(BaseTaskTransformer):
+
+    def __init__(self, namespace, labels=None):
+        '''Initialize a global label transformer
+
+        Parameters
+        ----------
+        jam : jams.JAMS
+            The JAMS object container
+        '''
+
+        super(GlobalLabelTransformer, self).__init__(namespace, 1, 1, 0)
+
+        self.encoder = MultiLabelBinarizer()
+        self.encoder.fit([labels])
+        self._classes = set(self.encoder.classes_)
+
+    def transform(self, jam):
+
+        anns = jam.search(namespace=self.namespace)
+
+        intervals = np.asarray([[0, 1]])
+        values = [None]
+        mask = False
+
+        if anns:
+            values = list(anns[0].data.value)
+            intervals = np.tile(intervals, [len(values), 1])
+            mask = True
+
+        # Suppress all intervals not in the encoder
+        tags = [v for v in values if v in self._classes]
+        if len(tags):
+            target = self.encoder.transform([tags]).max(axis=0)
+        else:
+            target = np.zeros(len(self._classes), dtype=np.int)
         return target, mask
