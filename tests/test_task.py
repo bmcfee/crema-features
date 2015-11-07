@@ -302,3 +302,21 @@ def test_task_beat_present():
                             [1, 0, 0, 0, 0, 0, 1, 0]])
 
     assert np.allclose(y, beat_true)
+
+
+def test_task_beat_absent():
+
+    # Construct a jam
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+
+    # One second = one frame
+    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+
+    y, mask = T.transform(jam)
+
+    # Make sure we have the mask
+    eq_(mask, False)
+
+    # Check the shape: 4 seconds at 2 samples per second
+    assert np.allclose(y.shape, [2, 8])
+    assert not np.any(y)
