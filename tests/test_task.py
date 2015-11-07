@@ -210,3 +210,27 @@ def test_task_glabel_present():
     true_labels = ['alpha', 'beta', 'disco']
 
     eq_(set(true_labels), set(predictions))
+
+
+def test_task_vector_absent():
+
+
+    def __test(dimension):
+        jam = jams.JAMS(file_metadata=dict(duration=4.0))
+        T = crema.task.VectorTransformer(namespace='vector',
+                                         dimension=dimension)
+
+        y, mask = T.transform(jam)
+
+        # Mask should be false since we have no matching namespace
+        eq_(mask, False)
+
+        # Check the shape
+        eq_(y.ndim, 1)
+        eq_(y.shape[0], dimension)
+
+        # Make sure it's empty
+        assert not np.any(y)
+
+    for dimension in [1, 2, 4]:
+        yield __test, dimension
