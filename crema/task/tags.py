@@ -73,7 +73,9 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
                 tags.extend(self.encoder.transform([[]]))
 
         tags = np.asarray(tags)
-        target = self.encode_intervals(intervals, tags)
+        target = self.encode_intervals(jam.file_metadata.duration,
+                                       intervals,
+                                       tags)
 
         return target, mask
 

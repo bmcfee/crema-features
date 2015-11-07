@@ -19,13 +19,15 @@ class BaseTaskTransformer(object):
 
         self.fill_na = fill_na
 
-    def encode_intervals(self, intervals, values):
+    def encode_intervals(self, duration, intervals, values):
 
         frames = librosa.time_to_frames(intervals,
                                         sr=self.sr,
                                         hop_length=self.hop_length)
 
-        n_total = np.max(frames)
+        n_total = librosa.time_to_frames(duration,
+                                         sr=self.sr,
+                                         hop_length=self.hop_length)
 
         target = np.empty((values.shape[1], n_total),
                           dtype=values.dtype)
