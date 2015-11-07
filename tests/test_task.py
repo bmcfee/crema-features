@@ -7,7 +7,7 @@ import numpy as np
 
 import jams
 
-from nose.tools import eq_
+from nose.tools import eq_, raises
 
 
 def test_task_chord_present():
@@ -214,7 +214,6 @@ def test_task_glabel_present():
 
 def test_task_vector_absent():
 
-
     def __test(dimension):
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
@@ -234,3 +233,38 @@ def test_task_vector_absent():
 
     for dimension in [1, 2, 4]:
         yield __test, dimension
+
+
+def test_task_vector_present():
+
+    def __test(target_dimension, data_dimension):
+        jam = jams.JAMS(file_metadata=dict(duration=4.0))
+        T = crema.task.VectorTransformer(namespace='vector',
+                                         dimension=target_dimension)
+
+        ann = jams.Annotation(namespace='vector')
+        ann.append(time=0, duration=1,
+                   value=list(np.random.randn(data_dimension)))
+
+        jam.annotations.append(ann)
+
+        y, mask = T.transform(jam)
+
+        # Mask should be false since we have no matching namespace
+        eq_(mask, True)
+
+        # Check the shape
+        eq_(y.ndim, 1)
+        eq_(y.shape[0], target_dimension)
+
+        # Make sure it's empty
+        assert np.allclose(y, ann.data.loc[0].value)
+
+    for target_d in [1, 2, 4]:
+        for data_d in [1, 2, 4]:
+            if target_d != data_d:
+                tf = raises(RuntimeError)(__test)
+            else:
+                tf = __test
+            yield tf, target_d, data_d
+

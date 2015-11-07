@@ -20,7 +20,7 @@ class VectorTransformer(BaseTaskTransformer):
         anns = jam.search(namespace=self.namespace)
 
         if anns:
-            vector = np.asarray(anns[0].data.values.iloc[0])
+            vector = np.asarray(anns[0].data.value.iloc[0])
             if len(vector) != self.dimension:
                 raise RuntimeError('vector dimension({:0}) '
                                    '!= self.dimension({:1})'
