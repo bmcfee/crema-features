@@ -19,6 +19,26 @@ class BaseTaskTransformer(object):
 
         self.fill_na = fill_na
 
+    def encode_events(self, duration, events, values):
+
+        frames = librosa.time_to_frames(events,
+                                        sr=self.sr,
+                                        hop_length=self.hop_length)
+
+        n_total = librosa.time_to_frames(duration,
+                                         sr=self.sr,
+                                         hop_length=self.hop_length)
+
+        target = np.empty((values.shape[1], n_total),
+                          dtype=values.dtype)
+
+        target.fill(self.fill_na)
+
+        for column, event in zip(values, frames):
+            target[:, event] = column
+
+        return target
+
     def encode_intervals(self, duration, intervals, values):
 
         frames = librosa.time_to_frames(intervals,
@@ -29,7 +49,7 @@ class BaseTaskTransformer(object):
                                          sr=self.sr,
                                          hop_length=self.hop_length)
 
-        target = np.empty((values.shape[1], n_total),
+        target = np.empty((values.shape[-1], n_total),
                           dtype=values.dtype)
 
         target.fill(self.fill_na)
