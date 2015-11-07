@@ -267,3 +267,38 @@ def test_task_vector_present():
             else:
                 tf = __test
             yield tf, target_d, data_d
+
+
+def test_task_beat_present():
+
+    # Construct a jam
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+
+    ann = jams.Annotation(namespace='beat')
+
+    ann.append(time=0, duration=0.0, value=1)
+    ann.append(time=1, duration=0.0, value=2)
+    ann.append(time=2, duration=0.0, value=3)
+    ann.append(time=3, duration=0.0, value=1)
+
+    jam.annotations.append(ann)
+
+    # One second = one frame
+    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+
+    y, mask = T.transform(jam)
+
+    # Make sure we have the mask
+    eq_(mask, True)
+
+    # Check the shape: 4 seconds at 2 samples per second
+    assert np.allclose(y.shape, [2, 8])
+
+    # Ideal vectors:
+    #   a beat every second (two samples)
+    #   a downbeat every three seconds (6 samples)
+
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0],
+                            [1, 0, 0, 0, 0, 0, 1, 0]])
+
+    assert np.allclose(y, beat_true)
