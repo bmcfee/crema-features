@@ -21,7 +21,7 @@ class BeatTransformer(BaseTaskTransformer):
             mask = True
             intervals, values = anns[0].data.to_interval_values()
             values = np.asarray(values)
-            
+
             beat_events = intervals[:, 0]
             beat_labels = np.ones((len(beat_events), 1))
 

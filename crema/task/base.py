@@ -37,7 +37,7 @@ class BaseTaskTransformer(object):
         for column, event in zip(values, frames):
             target[:, event] = column
 
-        return target
+        return target.astype(np.bool)
 
     def encode_intervals(self, duration, intervals, values):
 
@@ -57,4 +57,4 @@ class BaseTaskTransformer(object):
         for column, interval in zip(values, frames):
             target[:, interval[0]:interval[1]] += column[:, np.newaxis]
 
-        return target
+        return target.astype(np.bool)
