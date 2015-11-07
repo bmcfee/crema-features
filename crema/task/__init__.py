@@ -4,4 +4,5 @@
 
 from .base import *
 from .chord import *
+from .regression import *
 from .tags import *
