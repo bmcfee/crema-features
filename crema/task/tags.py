@@ -104,20 +104,14 @@ class GlobalLabelTransformer(BaseTaskTransformer):
         mask = False
 
         if anns:
-            _, ann_val = anns[0].data.to_interval_values()
-            intervals = np.tile(intervals, [len(ann_val), 1])
-            values = ann_val
+            values = list(anns[0].data.value)
+            intervals = np.tile(intervals, [len(values), 1])
             mask = True
 
         # Suppress all intervals not in the encoder
-        tags = []
-        for v in values:
-            if v in self._classes:
-                tags.extend(self.encoder.transform([[v]]))
-            else:
-                tags.extend(self.encoder.transform([[]]))
-
-        tags = np.asarray(tags)
-        target = self.encode_intervals(intervals, tags).reshape(-1)
-
+        tags = [v for v in values if v in self._classes]
+        if len(tags):
+            target = self.encoder.transform(tags).max(axis=0)
+        else:
+            target = np.zeros(len(self._classes), dtype=np.int)
         return target, mask
