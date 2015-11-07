@@ -304,6 +304,41 @@ def test_task_beat_present():
     assert np.allclose(y, beat_true)
 
 
+def test_task_beat_nometer():
+
+    # Construct a jam
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+
+    ann = jams.Annotation(namespace='beat')
+
+    ann.append(time=0, duration=0.0)
+    ann.append(time=1, duration=0.0)
+    ann.append(time=2, duration=0.0)
+    ann.append(time=3, duration=0.0)
+
+    jam.annotations.append(ann)
+
+    # One second = one frame
+    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+
+    y, mask = T.transform(jam)
+
+    # Make sure we have the mask
+    eq_(mask, True)
+
+    # Check the shape: 4 seconds at 2 samples per second
+    assert np.allclose(y.shape, [2, 8])
+
+    # Ideal vectors:
+    #   a beat every second (two samples)
+    #   no downbeats
+
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0]])
+
+    assert np.allclose(y, beat_true)
+
+
 def test_task_beat_absent():
 
     # Construct a jam
