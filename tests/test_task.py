@@ -292,14 +292,16 @@ def test_task_beat_present():
     eq_(mask, True)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 8])
+    # The first channel measures beats
+    # The second channel measures downbeats
+    assert np.allclose(y.shape, [2, 1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   a downbeat every three seconds (6 samples)
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0],
-                            [1, 0, 0, 0, 0, 0, 1, 0]])
+    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
+                            [[1, 0, 0, 0, 0, 0, 1, 0]]])
 
     assert np.allclose(y, beat_true)
 
@@ -327,14 +329,14 @@ def test_task_beat_nometer():
     eq_(mask, True)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 8])
+    assert np.allclose(y.shape, [2, 1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   no downbeats
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0]])
+    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
+                            [[0, 0, 0, 0, 0, 0, 0, 0]]])
 
     assert np.allclose(y, beat_true)
 
@@ -353,5 +355,5 @@ def test_task_beat_absent():
     eq_(mask, False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 8])
+    assert np.allclose(y.shape, [2, 1, 8])
     assert not np.any(y)

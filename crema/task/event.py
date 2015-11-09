@@ -42,6 +42,7 @@ class BeatTransformer(BaseTaskTransformer):
                                              downbeat_events,
                                              downbeat_labels)
 
-        target = np.vstack([target_beat, target_downbeat])
+        target = np.vstack([target_beat[np.newaxis, :],
+                            target_downbeat[np.newaxis, :]])
 
         return target, mask
