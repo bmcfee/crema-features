@@ -78,7 +78,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
                                        intervals,
                                        tags)
         return {'y_{:s}'.format(self.name): target,
-                'z_{:s}'.format(self.name): mask}
+                'mask_{:s}'.format(self.name): mask}
 
 
 class GlobalLabelTransformer(BaseTaskTransformer):
@@ -120,4 +120,4 @@ class GlobalLabelTransformer(BaseTaskTransformer):
             target = np.zeros(len(self._classes), dtype=np.int)
 
         return {'y_{:s}'.format(self.name): target,
-                'z_{:s}'.format(self.name): mask}
+                'mask_{:s}'.format(self.name): mask}

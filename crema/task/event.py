@@ -51,6 +51,6 @@ class BeatTransformer(BaseTaskTransformer):
                                              downbeat_labels)
 
         return {'y_beat': target_beat,
-                'z_beat': mask_beat,
+                'mask_beat': mask_beat,
                 'y_downbeat': target_downbeat,
-                'z_downbeat': mask_downbeat}
+                'mask_downbeat': mask_downbeat}

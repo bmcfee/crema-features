@@ -69,8 +69,6 @@ class ChordTransformer(BaseTaskTransformer):
                                             intervals, bass)
 
         return {'y_pitches': target_pitch,
-                'z_pitches': mask,
                 'y_root': target_root,
-                'z_root': mask,
                 'y_bass': target_bass,
-                'z_bass': mask}
+                'mask_chord': mask}

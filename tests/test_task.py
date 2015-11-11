@@ -29,9 +29,7 @@ def test_task_chord_present():
     output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(output['z_pitches'], True)
-    eq_(output['z_root'], True)
-    eq_(output['z_bass'], True)
+    eq_(output['mask_chord'], True)
 
     # Ideal vectors:
     # pcp = Cmaj, Cmaj, N, Dmaj
@@ -89,9 +87,7 @@ def test_task_chord_absent():
     output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(output['z_pitches'], False)
-    eq_(output['z_root'], False)
-    eq_(output['z_bass'], False)
+    eq_(output['mask_chord'], False)
 
     # Check the shape
     assert np.allclose(output['y_pitches'].shape, [12, 4])
@@ -126,7 +122,7 @@ def test_task_tslabel_present():
     output = T.transform(jam)
 
     # Mask should be true
-    eq_(output['z_madeup'], True)
+    eq_(output['mask_madeup'], True)
 
     y = output['y_madeup']
 
@@ -155,7 +151,7 @@ def test_task_tslabel_absent():
     output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(output['z_madeup'], False)
+    eq_(output['mask_madeup'], False)
     y = output['y_madeup']
 
     # Check the shape
@@ -176,7 +172,7 @@ def test_task_glabel_absent():
     output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(output['z_madeup'], False)
+    eq_(output['mask_madeup'], False)
 
     # Check the shape
     eq_(output['y_madeup'].ndim, 1)
@@ -206,7 +202,7 @@ def test_task_glabel_present():
     output = T.transform(jam)
 
     # Mask should be true
-    eq_(output['z_madeup'], True)
+    eq_(output['mask_madeup'], True)
 
     # Check the shape
     eq_(output['y_madeup'].ndim, 1)
@@ -225,7 +221,7 @@ def test_task_vector_absent():
     def __test(dimension, name):
 
         var_name = 'y_{:s}'.format(name)
-        mask_name = 'z_{:s}'.format(name)
+        mask_name = 'mask_{:s}'.format(name)
 
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
@@ -253,7 +249,7 @@ def test_task_vector_present():
 
     def __test(target_dimension, data_dimension, name):
         var_name = 'y_{:s}'.format(name)
-        mask_name = 'z_{:s}'.format(name)
+        mask_name = 'mask_{:s}'.format(name)
 
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
@@ -308,8 +304,8 @@ def test_task_beat_present():
     output = T.transform(jam)
 
     # Make sure we have the masks
-    eq_(output['z_beat'], True)
-    eq_(output['z_downbeat'], True)
+    eq_(output['mask_beat'], True)
+    eq_(output['mask_downbeat'], True)
 
     # Check the shape: 4 seconds at 2 samples per second
     # The first channel measures beats
@@ -348,8 +344,8 @@ def test_task_beat_nometer():
     output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(output['z_beat'], True)
-    eq_(output['z_downbeat'], False)
+    eq_(output['mask_beat'], True)
+    eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
     assert np.allclose(output['y_beat'].shape, [1, 8])
@@ -377,8 +373,8 @@ def test_task_beat_absent():
     output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(output['z_beat'], False)
-    eq_(output['z_downbeat'], False)
+    eq_(output['mask_beat'], False)
+    eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
     assert np.allclose(output['y_beat'].shape, [1, 8])

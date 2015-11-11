@@ -32,4 +32,4 @@ class VectorTransformer(BaseTaskTransformer):
             mask = False
 
         return {'y_{:s}'.format(self.name): vector,
-                'z_{:s}'.format(self.name): mask}
+                'mask_{:s}'.format(self.name): mask}
