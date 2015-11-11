@@ -28,7 +28,7 @@ INSTRUMENTS = ['drum set',
 
 class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, sr, hop_length, labels=None):
+    def __init__(self, namespace, sr, hop_length, name, labels=None):
         '''Initialize a time-series label transformer
 
         Parameters
@@ -49,6 +49,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])
         self._classes = set(self.encoder.classes_)
+        self.name = name
 
     def transform(self, jam):
 
@@ -76,13 +77,13 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
         target = self.encode_intervals(jam.file_metadata.duration,
                                        intervals,
                                        tags)
-
-        return target, mask
+        return {'output_{:s}'.format(self.name): target,
+                'mask_{:s}'.format(self.name): mask}
 
 
 class GlobalLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, labels=None):
+    def __init__(self, namespace, name, labels=None):
         '''Initialize a global label transformer
 
         Parameters
@@ -96,6 +97,7 @@ class GlobalLabelTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])
         self._classes = set(self.encoder.classes_)
+        self.name = name
 
     def transform(self, jam):
 
@@ -116,4 +118,6 @@ class GlobalLabelTransformer(BaseTaskTransformer):
             target = self.encoder.transform([tags]).max(axis=0)
         else:
             target = np.zeros(len(self._classes), dtype=np.int)
-        return target, mask
+
+        return {'output_{:s}'.format(self.name): target,
+                'mask_{:s}'.format(self.name): mask}

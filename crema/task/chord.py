@@ -61,13 +61,14 @@ class ChordTransformer(BaseTaskTransformer):
         root = np.asarray(root)
         bass = np.asarray(bass)
 
-        target_pitch = self.encode_intervals(jam.file_metadata.duration, intervals, pitch)
-        target_root = self.encode_intervals(jam.file_metadata.duration, intervals, root)
-        target_bass = self.encode_intervals(jam.file_metadata.duration, intervals, bass)
+        target_pitch = self.encode_intervals(jam.file_metadata.duration,
+                                             intervals, pitch)
+        target_root = self.encode_intervals(jam.file_metadata.duration,
+                                            intervals, root)
+        target_bass = self.encode_intervals(jam.file_metadata.duration,
+                                            intervals, bass)
 
-        target = np.stack([target_pitch,
-                           target_root,
-                           target_bass],
-                          axis=0)
-
-        return target, mask
+        return {'output_pitches': target_pitch,
+                'output_root': target_root,
+                'output_bass': target_bass,
+                'mask_chord': mask}

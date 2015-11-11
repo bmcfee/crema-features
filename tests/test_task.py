@@ -26,17 +26,10 @@ def test_task_chord_present():
     # One second = one frame
     T = crema.task.ChordTransformer(sr=1, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, True)
-
-    # Check the shape
-    assert np.allclose(y.shape, [3, 12, 4])
-
-    pcp = y[0]
-    root = y[1]
-    bass = y[2]
+    eq_(output['mask_chord'], True)
 
     # Ideal vectors:
     # pcp = Cmaj, Cmaj, N, Dmaj
@@ -81,9 +74,9 @@ def test_task_chord_present():
                             [0, 0, 0, 0],
                             [0, 0, 0, 0]])
 
-    assert np.allclose(pcp, pcp_true)
-    assert np.allclose(root, root_true)
-    assert np.allclose(bass, bass_true)
+    assert np.allclose(output['output_pitches'], pcp_true)
+    assert np.allclose(output['output_root'], root_true)
+    assert np.allclose(output['output_bass'], bass_true)
 
 
 def test_task_chord_absent():
@@ -91,16 +84,20 @@ def test_task_chord_absent():
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
     T = crema.task.ChordTransformer(sr=1, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['mask_chord'], False)
 
     # Check the shape
-    assert np.allclose(y.shape, [3, 12, 4])
+    assert np.allclose(output['output_pitches'].shape, [12, 4])
+    assert np.allclose(output['output_root'].shape, [12, 4])
+    assert np.allclose(output['output_bass'].shape, [12, 4])
 
     # Make sure it's empty
-    assert not np.any(y)
+    assert not np.any(output['output_pitches'])
+    assert not np.any(output['output_root'])
+    assert not np.any(output['output_bass'])
 
 
 def test_task_tslabel_present():
@@ -119,12 +116,15 @@ def test_task_tslabel_present():
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
                                               sr=1,
                                               hop_length=1,
+                                              name='madeup',
                                               labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be true
-    eq_(mask, True)
+    eq_(output['mask_madeup'], True)
+
+    y = output['output_madeup']
 
     # Check the shape
     assert np.allclose(y.shape, [len(labels), 4])
@@ -145,12 +145,14 @@ def test_task_tslabel_absent():
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
                                               sr=1,
                                               hop_length=1,
+                                              name='madeup',
                                               labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['mask_madeup'], False)
+    y = output['output_madeup']
 
     # Check the shape
     assert np.allclose(y.shape, [len(labels), 4])
@@ -164,19 +166,20 @@ def test_task_glabel_absent():
 
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
     T = crema.task.GlobalLabelTransformer(namespace='tag_open',
+                                          name='madeup',
                                           labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['mask_madeup'], False)
 
     # Check the shape
-    eq_(y.ndim, 1)
-    eq_(y.shape[0], len(labels))
+    eq_(output['output_madeup'].ndim, 1)
+    eq_(output['output_madeup'].shape[0], len(labels))
 
     # Make sure it's empty
-    assert not np.any(y)
+    assert not np.any(output['output_madeup'])
 
 
 def test_task_glabel_present():
@@ -193,19 +196,20 @@ def test_task_glabel_present():
 
     jam.annotations.append(ann)
     T = crema.task.GlobalLabelTransformer(namespace='tag_open',
+                                          name='madeup',
                                           labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be true
-    eq_(mask, True)
+    eq_(output['mask_madeup'], True)
 
     # Check the shape
-    eq_(y.ndim, 1)
-    eq_(y.shape[0], len(labels))
+    eq_(output['output_madeup'].ndim, 1)
+    eq_(output['output_madeup'].shape[0], len(labels))
 
     # Decode the labels
-    predictions = T.encoder.inverse_transform(y.reshape((1, -1)))[0]
+    predictions = T.encoder.inverse_transform(output['output_madeup'].reshape((1, -1)))[0]
 
     true_labels = ['alpha', 'beta', 'disco']
 
@@ -214,33 +218,43 @@ def test_task_glabel_present():
 
 def test_task_vector_absent():
 
-    def __test(dimension):
+    def __test(dimension, name):
+
+        var_name = 'output_{:s}'.format(name)
+        mask_name = 'mask_{:s}'.format(name)
+
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
-                                         dimension=dimension)
+                                         dimension=dimension,
+                                         name=name)
 
-        y, mask = T.transform(jam)
+        output = T.transform(jam)
 
         # Mask should be false since we have no matching namespace
-        eq_(mask, False)
+        eq_(output[mask_name], False)
 
         # Check the shape
-        eq_(y.ndim, 1)
-        eq_(y.shape[0], dimension)
+        eq_(output[var_name].ndim, 1)
+        eq_(output[var_name].shape[0], dimension)
 
         # Make sure it's empty
-        assert not np.any(y)
+        assert not np.any(output[var_name])
 
     for dimension in [1, 2, 4]:
-        yield __test, dimension
+        yield __test, dimension, 'collab'
+        yield __test, dimension, 'vec'
 
 
 def test_task_vector_present():
 
-    def __test(target_dimension, data_dimension):
+    def __test(target_dimension, data_dimension, name):
+        var_name = 'output_{:s}'.format(name)
+        mask_name = 'mask_{:s}'.format(name)
+
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
-                                         dimension=target_dimension)
+                                         dimension=target_dimension,
+                                         name=name)
 
         ann = jams.Annotation(namespace='vector')
         ann.append(time=0, duration=1,
@@ -248,17 +262,17 @@ def test_task_vector_present():
 
         jam.annotations.append(ann)
 
-        y, mask = T.transform(jam)
+        output = T.transform(jam)
 
         # Mask should be false since we have no matching namespace
-        eq_(mask, True)
+        eq_(output[mask_name], True)
 
         # Check the shape
-        eq_(y.ndim, 1)
-        eq_(y.shape[0], target_dimension)
+        eq_(output[var_name].ndim, 1)
+        eq_(output[var_name].shape[0], target_dimension)
 
         # Make sure it's empty
-        assert np.allclose(y, ann.data.loc[0].value)
+        assert np.allclose(output[var_name], ann.data.loc[0].value)
 
     for target_d in [1, 2, 4]:
         for data_d in [1, 2, 4]:
@@ -266,7 +280,8 @@ def test_task_vector_present():
                 tf = raises(RuntimeError)(__test)
             else:
                 tf = __test
-            yield tf, target_d, data_d
+            yield tf, target_d, data_d, 'collab'
+            yield tf, target_d, data_d, 'vec'
 
 
 def test_task_beat_present():
@@ -286,24 +301,27 @@ def test_task_beat_present():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
-    # Make sure we have the mask
-    eq_(mask, True)
+    # Make sure we have the masks
+    eq_(output['mask_beat'], True)
+    eq_(output['mask_downbeat'], True)
 
     # Check the shape: 4 seconds at 2 samples per second
     # The first channel measures beats
     # The second channel measures downbeats
-    assert np.allclose(y.shape, [2, 1, 8])
+    assert np.allclose(output['output_beat'].shape, [1, 8])
+    assert np.allclose(output['output_downbeat'].shape, [1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   a downbeat every three seconds (6 samples)
 
-    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
-                            [[1, 0, 0, 0, 0, 0, 1, 0]]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
+    downbeat_true = np.asarray([[1, 0, 0, 0, 0, 0, 1, 0]])
 
-    assert np.allclose(y, beat_true)
+    assert np.allclose(output['output_beat'], beat_true)
+    assert np.allclose(output['output_downbeat'], downbeat_true)
 
 
 def test_task_beat_nometer():
@@ -323,22 +341,25 @@ def test_task_beat_nometer():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, True)
+    eq_(output['mask_beat'], True)
+    eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 1, 8])
+    assert np.allclose(output['output_beat'].shape, [1, 8])
+    assert np.allclose(output['output_downbeat'].shape, [1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   no downbeats
 
-    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
-                            [[0, 0, 0, 0, 0, 0, 0, 0]]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
+    downbeat_true = np.asarray([[0, 0, 0, 0, 0, 0, 0, 0]])
 
-    assert np.allclose(y, beat_true)
+    assert np.allclose(output['output_beat'], beat_true)
+    assert np.allclose(output['output_downbeat'], downbeat_true)
 
 
 def test_task_beat_absent():
@@ -349,11 +370,14 @@ def test_task_beat_absent():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, False)
+    eq_(output['mask_beat'], False)
+    eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 1, 8])
-    assert not np.any(y)
+    assert np.allclose(output['output_beat'].shape, [1, 8])
+    assert np.allclose(output['output_downbeat'].shape, [1, 8])
+    assert not np.any(output['output_beat'])
+    assert not np.any(output['output_downbeat'])
