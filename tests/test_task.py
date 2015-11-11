@@ -119,12 +119,15 @@ def test_task_tslabel_present():
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
                                               sr=1,
                                               hop_length=1,
+                                              name='madeup',
                                               labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be true
-    eq_(mask, True)
+    eq_(output['z_madeup'], True)
+
+    y = output['y_madeup']
 
     # Check the shape
     assert np.allclose(y.shape, [len(labels), 4])
@@ -145,12 +148,14 @@ def test_task_tslabel_absent():
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
                                               sr=1,
                                               hop_length=1,
+                                              name='madeup',
                                               labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['z_madeup'], False)
+    y = output['y_madeup']
 
     # Check the shape
     assert np.allclose(y.shape, [len(labels), 4])

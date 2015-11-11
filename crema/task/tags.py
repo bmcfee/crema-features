@@ -28,7 +28,7 @@ INSTRUMENTS = ['drum set',
 
 class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, sr, hop_length, labels=None):
+    def __init__(self, namespace, sr, hop_length, name, labels=None):
         '''Initialize a time-series label transformer
 
         Parameters
@@ -49,6 +49,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])
         self._classes = set(self.encoder.classes_)
+        self.name = name
 
     def transform(self, jam):
 
@@ -76,8 +77,8 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
         target = self.encode_intervals(jam.file_metadata.duration,
                                        intervals,
                                        tags)
-
-        return target, mask
+        return {'y_{:s}'.format(self.name): target,
+                'z_{:s}'.format(self.name): mask}
 
 
 class GlobalLabelTransformer(BaseTaskTransformer):
