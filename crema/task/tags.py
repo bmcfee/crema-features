@@ -82,7 +82,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
 class GlobalLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, labels=None):
+    def __init__(self, namespace, name, labels=None):
         '''Initialize a global label transformer
 
         Parameters
@@ -96,6 +96,7 @@ class GlobalLabelTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])
         self._classes = set(self.encoder.classes_)
+        self.name = name
 
     def transform(self, jam):
 
@@ -116,4 +117,6 @@ class GlobalLabelTransformer(BaseTaskTransformer):
             target = self.encoder.transform([tags]).max(axis=0)
         else:
             target = np.zeros(len(self._classes), dtype=np.int)
-        return target, mask
+
+        return {'y_{:s}'.format(self.name): target,
+                'z_{:s}'.format(self.name): mask}

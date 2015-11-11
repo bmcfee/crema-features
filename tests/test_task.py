@@ -164,19 +164,20 @@ def test_task_glabel_absent():
 
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
     T = crema.task.GlobalLabelTransformer(namespace='tag_open',
+                                          name='madeup',
                                           labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['z_madeup'], False)
 
     # Check the shape
-    eq_(y.ndim, 1)
-    eq_(y.shape[0], len(labels))
+    eq_(output['y_madeup'].ndim, 1)
+    eq_(output['y_madeup'].shape[0], len(labels))
 
     # Make sure it's empty
-    assert not np.any(y)
+    assert not np.any(output['y_madeup'])
 
 
 def test_task_glabel_present():
@@ -193,19 +194,20 @@ def test_task_glabel_present():
 
     jam.annotations.append(ann)
     T = crema.task.GlobalLabelTransformer(namespace='tag_open',
+                                          name='madeup',
                                           labels=labels)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be true
-    eq_(mask, True)
+    eq_(output['z_madeup'], True)
 
     # Check the shape
-    eq_(y.ndim, 1)
-    eq_(y.shape[0], len(labels))
+    eq_(output['y_madeup'].ndim, 1)
+    eq_(output['y_madeup'].shape[0], len(labels))
 
     # Decode the labels
-    predictions = T.encoder.inverse_transform(y.reshape((1, -1)))[0]
+    predictions = T.encoder.inverse_transform(output['y_madeup'].reshape((1, -1)))[0]
 
     true_labels = ['alpha', 'beta', 'disco']
 
