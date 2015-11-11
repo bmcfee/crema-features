@@ -68,7 +68,7 @@ class ChordTransformer(BaseTaskTransformer):
         target_bass = self.encode_intervals(jam.file_metadata.duration,
                                             intervals, bass)
 
-        return {'y_pitches': target_pitch,
-                'y_root': target_root,
-                'y_bass': target_bass,
+        return {'output_pitches': target_pitch,
+                'output_root': target_root,
+                'output_bass': target_bass,
                 'mask_chord': mask}

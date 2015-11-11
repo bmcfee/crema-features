@@ -77,7 +77,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
         target = self.encode_intervals(jam.file_metadata.duration,
                                        intervals,
                                        tags)
-        return {'y_{:s}'.format(self.name): target,
+        return {'output_{:s}'.format(self.name): target,
                 'mask_{:s}'.format(self.name): mask}
 
 
@@ -119,5 +119,5 @@ class GlobalLabelTransformer(BaseTaskTransformer):
         else:
             target = np.zeros(len(self._classes), dtype=np.int)
 
-        return {'y_{:s}'.format(self.name): target,
+        return {'output_{:s}'.format(self.name): target,
                 'mask_{:s}'.format(self.name): mask}

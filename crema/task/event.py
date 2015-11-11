@@ -50,7 +50,7 @@ class BeatTransformer(BaseTaskTransformer):
                                              downbeat_events,
                                              downbeat_labels)
 
-        return {'y_beat': target_beat,
+        return {'output_beat': target_beat,
                 'mask_beat': mask_beat,
-                'y_downbeat': target_downbeat,
+                'output_downbeat': target_downbeat,
                 'mask_downbeat': mask_downbeat}

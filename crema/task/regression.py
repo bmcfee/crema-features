@@ -31,5 +31,5 @@ class VectorTransformer(BaseTaskTransformer):
             vector = np.zeros(self.dimension, dtype=np.float32)
             mask = False
 
-        return {'y_{:s}'.format(self.name): vector,
+        return {'output_{:s}'.format(self.name): vector,
                 'mask_{:s}'.format(self.name): mask}
