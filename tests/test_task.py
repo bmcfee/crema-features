@@ -286,24 +286,27 @@ def test_task_beat_present():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
-    # Make sure we have the mask
-    eq_(mask, True)
+    # Make sure we have the masks
+    eq_(output['z_beat'], True)
+    eq_(output['z_downbeat'], True)
 
     # Check the shape: 4 seconds at 2 samples per second
     # The first channel measures beats
     # The second channel measures downbeats
-    assert np.allclose(y.shape, [2, 1, 8])
+    assert np.allclose(output['y_beat'].shape, [1, 8])
+    assert np.allclose(output['y_downbeat'].shape, [1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   a downbeat every three seconds (6 samples)
 
-    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
-                            [[1, 0, 0, 0, 0, 0, 1, 0]]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
+    downbeat_true = np.asarray([[1, 0, 0, 0, 0, 0, 1, 0]])
 
-    assert np.allclose(y, beat_true)
+    assert np.allclose(output['y_beat'], beat_true)
+    assert np.allclose(output['y_downbeat'], downbeat_true)
 
 
 def test_task_beat_nometer():
@@ -323,22 +326,25 @@ def test_task_beat_nometer():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, True)
+    eq_(output['z_beat'], True)
+    eq_(output['z_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 1, 8])
+    assert np.allclose(output['y_beat'].shape, [1, 8])
+    assert np.allclose(output['y_downbeat'].shape, [1, 8])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   no downbeats
 
-    beat_true = np.asarray([[[1, 0, 1, 0, 1, 0, 1, 0]],
-                            [[0, 0, 0, 0, 0, 0, 0, 0]]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
+    downbeat_true = np.asarray([[0, 0, 0, 0, 0, 0, 0, 0]])
 
-    assert np.allclose(y, beat_true)
+    assert np.allclose(output['y_beat'], beat_true)
+    assert np.allclose(output['y_downbeat'], downbeat_true)
 
 
 def test_task_beat_absent():
@@ -349,11 +355,14 @@ def test_task_beat_absent():
     # One second = one frame
     T = crema.task.BeatTransformer(sr=2, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, False)
+    eq_(output['z_beat'], False)
+    eq_(output['z_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(y.shape, [2, 1, 8])
-    assert not np.any(y)
+    assert np.allclose(output['y_beat'].shape, [1, 8])
+    assert np.allclose(output['y_downbeat'].shape, [1, 8])
+    assert not np.any(output['y_beat'])
+    assert not np.any(output['y_downbeat'])

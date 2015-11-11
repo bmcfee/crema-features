@@ -17,18 +17,26 @@ class BeatTransformer(BaseTaskTransformer):
 
         anns = jam.search(namespace=self.namespace)
 
+        mask_beat = False
+        mask_downbeat = False
+
         if anns:
-            mask = True
+            mask_beat = True
             intervals, values = anns[0].data.to_interval_values()
             values = np.asarray(values)
 
             beat_events = intervals[:, 0]
             beat_labels = np.ones((len(beat_events), 1))
 
-            downbeat_events = beat_events[values == 1]
-            downbeat_labels = np.ones((len(downbeat_events), 1))
+            idx = (values == 1)
+            if np.any(idx):
+                downbeat_events = beat_events[idx]
+                downbeat_labels = np.ones((len(downbeat_events), 1))
+                mask_downbeat = True
+            else:
+                downbeat_events = np.zeros(0)
+                downbeat_labels = np.zeros((0, 1))
         else:
-            mask = False
             beat_events = np.zeros(0)
             beat_labels = np.zeros((0, 1))
             downbeat_events = beat_events
@@ -42,7 +50,7 @@ class BeatTransformer(BaseTaskTransformer):
                                              downbeat_events,
                                              downbeat_labels)
 
-        target = np.vstack([target_beat[np.newaxis, :],
-                            target_downbeat[np.newaxis, :]])
-
-        return target, mask
+        return {'y_beat': target_beat,
+                'z_beat': mask_beat,
+                'y_downbeat': target_downbeat,
+                'z_downbeat': mask_downbeat}
