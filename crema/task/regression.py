@@ -9,11 +9,12 @@ from .base import BaseTaskTransformer
 
 class VectorTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, dimension):
+    def __init__(self, namespace, dimension, name='vector'):
 
         super(VectorTransformer, self).__init__(namespace, 1, 1, 0)
 
         self.dimension = dimension
+        self.name = name
 
     def transform(self, jam):
 
@@ -30,4 +31,5 @@ class VectorTransformer(BaseTaskTransformer):
             vector = np.zeros(self.dimension, dtype=np.float32)
             mask = False
 
-        return vector, mask
+        return {'y_{:s}'.format(self.name): vector,
+                'z_{:s}'.format(self.name): mask}

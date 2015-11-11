@@ -214,33 +214,43 @@ def test_task_glabel_present():
 
 def test_task_vector_absent():
 
-    def __test(dimension):
+    def __test(dimension, name):
+
+        var_name = 'y_{:s}'.format(name)
+        mask_name = 'z_{:s}'.format(name)
+
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
-                                         dimension=dimension)
+                                         dimension=dimension,
+                                         name=name)
 
-        y, mask = T.transform(jam)
+        output = T.transform(jam)
 
         # Mask should be false since we have no matching namespace
-        eq_(mask, False)
+        eq_(output[mask_name], False)
 
         # Check the shape
-        eq_(y.ndim, 1)
-        eq_(y.shape[0], dimension)
+        eq_(output[var_name].ndim, 1)
+        eq_(output[var_name].shape[0], dimension)
 
         # Make sure it's empty
-        assert not np.any(y)
+        assert not np.any(output[var_name])
 
     for dimension in [1, 2, 4]:
-        yield __test, dimension
+        yield __test, dimension, 'collab'
+        yield __test, dimension, 'vec'
 
 
 def test_task_vector_present():
 
-    def __test(target_dimension, data_dimension):
+    def __test(target_dimension, data_dimension, name):
+        var_name = 'y_{:s}'.format(name)
+        mask_name = 'z_{:s}'.format(name)
+
         jam = jams.JAMS(file_metadata=dict(duration=4.0))
         T = crema.task.VectorTransformer(namespace='vector',
-                                         dimension=target_dimension)
+                                         dimension=target_dimension,
+                                         name=name)
 
         ann = jams.Annotation(namespace='vector')
         ann.append(time=0, duration=1,
@@ -248,17 +258,17 @@ def test_task_vector_present():
 
         jam.annotations.append(ann)
 
-        y, mask = T.transform(jam)
+        output = T.transform(jam)
 
         # Mask should be false since we have no matching namespace
-        eq_(mask, True)
+        eq_(output[mask_name], True)
 
         # Check the shape
-        eq_(y.ndim, 1)
-        eq_(y.shape[0], target_dimension)
+        eq_(output[var_name].ndim, 1)
+        eq_(output[var_name].shape[0], target_dimension)
 
         # Make sure it's empty
-        assert np.allclose(y, ann.data.loc[0].value)
+        assert np.allclose(output[var_name], ann.data.loc[0].value)
 
     for target_d in [1, 2, 4]:
         for data_d in [1, 2, 4]:
@@ -266,7 +276,8 @@ def test_task_vector_present():
                 tf = raises(RuntimeError)(__test)
             else:
                 tf = __test
-            yield tf, target_d, data_d
+            yield tf, target_d, data_d, 'collab'
+            yield tf, target_d, data_d, 'vec'
 
 
 def test_task_beat_present():
