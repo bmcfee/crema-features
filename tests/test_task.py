@@ -26,17 +26,12 @@ def test_task_chord_present():
     # One second = one frame
     T = crema.task.ChordTransformer(sr=1, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Make sure we have the mask
-    eq_(mask, True)
-
-    # Check the shape
-    assert np.allclose(y.shape, [3, 12, 4])
-
-    pcp = y[0]
-    root = y[1]
-    bass = y[2]
+    eq_(output['z_pitches'], True)
+    eq_(output['z_root'], True)
+    eq_(output['z_bass'], True)
 
     # Ideal vectors:
     # pcp = Cmaj, Cmaj, N, Dmaj
@@ -81,9 +76,9 @@ def test_task_chord_present():
                             [0, 0, 0, 0],
                             [0, 0, 0, 0]])
 
-    assert np.allclose(pcp, pcp_true)
-    assert np.allclose(root, root_true)
-    assert np.allclose(bass, bass_true)
+    assert np.allclose(output['y_pitches'], pcp_true)
+    assert np.allclose(output['y_root'], root_true)
+    assert np.allclose(output['y_bass'], bass_true)
 
 
 def test_task_chord_absent():
@@ -91,16 +86,22 @@ def test_task_chord_absent():
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
     T = crema.task.ChordTransformer(sr=1, hop_length=1)
 
-    y, mask = T.transform(jam)
+    output = T.transform(jam)
 
     # Mask should be false since we have no matching namespace
-    eq_(mask, False)
+    eq_(output['z_pitches'], False)
+    eq_(output['z_root'], False)
+    eq_(output['z_bass'], False)
 
     # Check the shape
-    assert np.allclose(y.shape, [3, 12, 4])
+    assert np.allclose(output['y_pitches'].shape, [12, 4])
+    assert np.allclose(output['y_root'].shape, [12, 4])
+    assert np.allclose(output['y_bass'].shape, [12, 4])
 
     # Make sure it's empty
-    assert not np.any(y)
+    assert not np.any(output['y_pitches'])
+    assert not np.any(output['y_root'])
+    assert not np.any(output['y_bass'])
 
 
 def test_task_tslabel_present():
