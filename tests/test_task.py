@@ -46,7 +46,7 @@ def test_task_chord_present():
                             [0, 0, 0, 0],
                             [0, 0, 0, 1],
                             [0, 0, 0, 0],
-                            [0, 0, 0, 0]])
+                            [0, 0, 0, 0]]).T
 
     root_true = np.asarray([[1, 1, 0, 0],
                             [0, 0, 0, 0],
@@ -59,7 +59,7 @@ def test_task_chord_present():
                             [0, 0, 0, 0],
                             [0, 0, 0, 0],
                             [0, 0, 0, 0],
-                            [0, 0, 0, 0]])
+                            [0, 0, 0, 0]]).T
 
     bass_true = np.asarray([[1, 0, 0, 0],
                             [0, 0, 0, 0],
@@ -72,7 +72,7 @@ def test_task_chord_present():
                             [0, 0, 0, 0],
                             [0, 0, 0, 0],
                             [0, 0, 0, 0],
-                            [0, 0, 0, 0]])
+                            [0, 0, 0, 0]]).T
 
     assert np.allclose(output['output_pitches'], pcp_true)
     assert np.allclose(output['output_root'], root_true)
@@ -90,9 +90,9 @@ def test_task_chord_absent():
     eq_(output['mask_chord'], False)
 
     # Check the shape
-    assert np.allclose(output['output_pitches'].shape, [12, 4])
-    assert np.allclose(output['output_root'].shape, [12, 4])
-    assert np.allclose(output['output_bass'].shape, [12, 4])
+    assert np.allclose(output['output_pitches'].shape, [4, 12])
+    assert np.allclose(output['output_root'].shape, [4, 12])
+    assert np.allclose(output['output_bass'].shape, [4, 12])
 
     # Make sure it's empty
     assert not np.any(output['output_pitches'])
@@ -127,10 +127,10 @@ def test_task_tslabel_present():
     y = output['output_madeup']
 
     # Check the shape
-    assert np.allclose(y.shape, [len(labels), 4])
+    assert np.allclose(y.shape, [4, len(labels)])
 
     # Decode the labels
-    predictions = T.encoder.inverse_transform(y.T)
+    predictions = T.encoder.inverse_transform(y)
 
     true_labels = [['alpha', 'beta'], [], [], ['disco']]
 
@@ -155,7 +155,7 @@ def test_task_tslabel_absent():
     y = output['output_madeup']
 
     # Check the shape
-    assert np.allclose(y.shape, [len(labels), 4])
+    assert np.allclose(y.shape, [4, len(labels)])
 
     # Make sure it's empty
     assert not np.any(y)
@@ -310,15 +310,15 @@ def test_task_beat_present():
     # Check the shape: 4 seconds at 2 samples per second
     # The first channel measures beats
     # The second channel measures downbeats
-    assert np.allclose(output['output_beat'].shape, [1, 8])
-    assert np.allclose(output['output_downbeat'].shape, [1, 8])
+    assert np.allclose(output['output_beat'].shape, [8, 1])
+    assert np.allclose(output['output_downbeat'].shape, [8, 1])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   a downbeat every three seconds (6 samples)
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
-    downbeat_true = np.asarray([[1, 0, 0, 0, 0, 0, 1, 0]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]]).T
+    downbeat_true = np.asarray([[1, 0, 0, 0, 0, 0, 1, 0]]).T
 
     assert np.allclose(output['output_beat'], beat_true)
     assert np.allclose(output['output_downbeat'], downbeat_true)
@@ -348,15 +348,15 @@ def test_task_beat_nometer():
     eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(output['output_beat'].shape, [1, 8])
-    assert np.allclose(output['output_downbeat'].shape, [1, 8])
+    assert np.allclose(output['output_beat'].shape, [8, 1])
+    assert np.allclose(output['output_downbeat'].shape, [8, 1])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   no downbeats
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]])
-    downbeat_true = np.asarray([[0, 0, 0, 0, 0, 0, 0, 0]])
+    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]]).T
+    downbeat_true = np.asarray([[0, 0, 0, 0, 0, 0, 0, 0]]).T
 
     assert np.allclose(output['output_beat'], beat_true)
     assert np.allclose(output['output_downbeat'], downbeat_true)
@@ -377,7 +377,7 @@ def test_task_beat_absent():
     eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(output['output_beat'].shape, [1, 8])
-    assert np.allclose(output['output_downbeat'].shape, [1, 8])
+    assert np.allclose(output['output_beat'].shape, [8, 1])
+    assert np.allclose(output['output_downbeat'].shape, [8, 1])
     assert not np.any(output['output_beat'])
     assert not np.any(output['output_downbeat'])

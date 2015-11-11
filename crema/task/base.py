@@ -29,13 +29,13 @@ class BaseTaskTransformer(object):
                                          sr=self.sr,
                                          hop_length=self.hop_length)
 
-        target = np.empty((values.shape[1], n_total),
+        target = np.empty((n_total, values.shape[1]),
                           dtype=values.dtype)
 
         target.fill(self.fill_na)
 
         for column, event in zip(values, frames):
-            target[:, event] = column
+            target[event] = column
 
         return target.astype(np.bool)
 
@@ -49,12 +49,12 @@ class BaseTaskTransformer(object):
                                          sr=self.sr,
                                          hop_length=self.hop_length)
 
-        target = np.empty((values.shape[-1], n_total),
+        target = np.empty((n_total, values.shape[-1]),
                           dtype=values.dtype)
 
         target.fill(self.fill_na)
 
         for column, interval in zip(values, frames):
-            target[:, interval[0]:interval[1]] += column[:, np.newaxis]
+            target[interval[0]:interval[1]] += column
 
         return target.astype(np.bool)
