@@ -55,8 +55,8 @@ def test_slice_data():
 
 def test_jams_mapping():
 
-    tasks = [crema.task.BeatTransformer(1000, 100)]
-#             crema.task.VectorTransformer('vector', 64)]
+    tasks = [crema.task.BeatTransformer(1000, 100),
+             crema.task.VectorTransformer('vector', 64)]
 
     jam = jams.load(TEST_JAMS)
 
