@@ -7,7 +7,29 @@ import jams
 
 
 def jams_mapping(jams_in, task_map):
+    '''Convert jams annotations to crema outputs.
 
+    Given a jams file and a collection of TaskTransformers,
+    each TaskTransformer is applied to the jams annotations,
+    and the results are collected in a single dictionary.
+
+    All data is cast to a numpy array, and reshaped to have a new
+    batch axis 0.
+
+    Parameters
+    ----------
+    jams_in : str or file-like
+        path to a jams object.  See ``jams.load`` for acceptable formats
+
+    task_map: iterable of BaseTaskTransformers
+        The task transformation objects to apply
+
+    Returns
+    -------
+    output : dict
+        All task transformer outputs, collected in one dictionary
+        and reshaped.
+    '''
     jam = jams.load(jams_in)
 
     output = {}
@@ -16,11 +38,6 @@ def jams_mapping(jams_in, task_map):
             output[key] = np.asarray(value)[np.newaxis]
 
     return output
-
-
-def load_audio_features(audio_in, cqt):
-
-    return cqt.octensor(cqt.extract(audio_in))[np.newaxis]
 
 
 def slice_data(data, sample):
@@ -122,7 +139,7 @@ def make_task_data(audio_in, jams_in, task_map, cqt):
     data = jams_mapping(jams_in, task_map)
 
     # Load the audio data
-    data['input'] = load_audio_features(audio_in, cqt)
+    data['input'] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
 
     return data
 
