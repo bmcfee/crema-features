@@ -4,7 +4,6 @@
 
 import crema
 import numpy as np
-import librosa
 
 from nose.tools import eq_
 
