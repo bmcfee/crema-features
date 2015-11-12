@@ -2,10 +2,12 @@
 # -*- encoding: utf-8 -*-
 '''Tests for the data processing layer'''
 
-import crema
+import jams
 import numpy as np
 
 from nose.tools import eq_, raises
+
+import crema
 
 TEST_FILE = 'data/test1_44100.wav'
 TEST_JAMS = 'data/test1_44100.jams'
@@ -49,3 +51,20 @@ def test_slice_data():
     assert np.all(subsample['ts2'] == data['ts2'][:, sample])
     assert np.all(subsample['flat1'] == data['flat1'])
     assert np.all(subsample['flat2'] == data['flat2'])
+
+
+def test_jams_mapping():
+
+    tasks = [crema.task.BeatTransformer(1000, 100)]
+#             crema.task.VectorTransformer('vector', 64)]
+
+    jam = jams.load(TEST_JAMS)
+
+    data = crema.data.jams_mapping(TEST_JAMS, tasks)
+
+    for task in tasks:
+        target = task.transform(jam)
+
+        for key in target:
+            assert key in data
+            assert np.allclose(target[key], data[key][0])
