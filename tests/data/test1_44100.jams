@@ -1,0 +1,372 @@
+{
+  "file_metadata": {
+    "artist": "",
+    "identifiers": {},
+    "duration": 4.587573696145125,
+    "jams_version": "0.2.0",
+    "title": "",
+    "release": ""
+  },
+  "sandbox": {},
+  "annotations": [
+    {
+      "time": 0,
+      "data": [
+        {
+          "time": 0.0,
+          "value": "N",
+          "confidence": null,
+          "duration": 0.04644
+        },
+        {
+          "time": 0.04644,
+          "value": "G",
+          "confidence": null,
+          "duration": 0.417959
+        },
+        {
+          "time": 0.464399,
+          "value": "A:7",
+          "confidence": null,
+          "duration": 0.37151900000000004
+        },
+        {
+          "time": 0.835918,
+          "value": "F:dim7",
+          "confidence": null,
+          "duration": 0.37151900000000004
+        },
+        {
+          "time": 1.207438,
+          "value": "D",
+          "confidence": null,
+          "duration": 2.043356
+        },
+        {
+          "time": 3.2507940000000004,
+          "value": "A:maj6",
+          "confidence": null,
+          "duration": 0.650159
+        },
+        {
+          "time": 3.900952,
+          "value": "G",
+          "confidence": null,
+          "duration": 0.743039
+        }
+      ],
+      "duration": null,
+      "annotation_metadata": {
+        "annotator": {},
+        "curator": {
+          "email": "",
+          "name": ""
+        },
+        "version": "",
+        "annotation_tools": "sonic-visualiser, chordino",
+        "validation": "",
+        "data_source": "",
+        "annotation_rules": "",
+        "corpus": ""
+      },
+      "sandbox": {},
+      "namespace": "chord"
+    },
+    {
+      "time": 0,
+      "data": [
+        {
+          "time": 0.04644,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 0.37151900000000004,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 0.835918,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.021678,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.253878,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.6253970000000002,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.764717,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.1826760000000003,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.3219950000000003,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.4613150000000004,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.693515,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.065033999,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.2043540000000004,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.575873,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.715193,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.854512,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 4.411791,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        }
+      ],
+      "duration": null,
+      "annotation_metadata": {
+        "annotator": {},
+        "curator": {
+          "email": "",
+          "name": ""
+        },
+        "version": "",
+        "annotation_tools": "sonic-visualiser",
+        "validation": "",
+        "data_source": "",
+        "annotation_rules": "",
+        "corpus": ""
+      },
+      "sandbox": {},
+      "namespace": "onset"
+    },
+    {
+      "time": 0,
+      "data": [
+        {
+          "time": 0.116,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 0.511,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 0.906,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.3,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 1.6720000000000002,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.0900000000000003,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.508,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 2.926,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.3440000000000003,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        },
+        {
+          "time": 3.7620000000000005,
+          "value": NaN,
+          "confidence": NaN,
+          "duration": 0.0
+        }
+      ],
+      "duration": null,
+      "annotation_metadata": {
+        "annotator": {},
+        "curator": {
+          "email": "",
+          "name": ""
+        },
+        "version": "",
+        "annotation_tools": "librosa 0.4.1",
+        "validation": "",
+        "data_source": "",
+        "annotation_rules": "",
+        "corpus": ""
+      },
+      "sandbox": {},
+      "namespace": "beat"
+    },
+    {
+      "time": 0,
+      "data": [
+        {
+          "time": 0.0,
+          "value": [
+            0.184,
+            1.095,
+            0.303,
+            0.551,
+            -0.336,
+            1.121,
+            -0.808,
+            -0.866,
+            1.058,
+            3.272,
+            -0.666,
+            0.724,
+            -0.063,
+            1.575,
+            1.123,
+            1.565,
+            -1.142,
+            0.78,
+            -0.693,
+            0.428,
+            -0.014,
+            1.139,
+            -0.365,
+            0.2,
+            -0.529,
+            -0.394,
+            -0.439,
+            -1.13,
+            0.011,
+            -2.136,
+            0.497,
+            -0.146,
+            -0.655,
+            -2.208,
+            -0.149,
+            0.187,
+            0.686,
+            -0.883,
+            -1.358,
+            0.025,
+            -0.342,
+            0.818,
+            -1.552,
+            0.519,
+            -0.923,
+            -0.118,
+            0.253,
+            -0.356,
+            0.168,
+            0.999,
+            -0.466,
+            0.274,
+            1.847,
+            -0.526,
+            -0.221,
+            -0.605,
+            -0.085,
+            -1.818,
+            -0.624,
+            -0.235,
+            -1.278,
+            -0.083,
+            -2.062,
+            0.725
+          ],
+          "confidence": null,
+          "duration": 4.587574
+        }
+      ],
+      "duration": null,
+      "annotation_metadata": {
+        "annotator": {},
+        "curator": {
+          "email": "",
+          "name": ""
+        },
+        "version": "",
+        "annotation_tools": "random gaussian noise",
+        "validation": "",
+        "data_source": "",
+        "annotation_rules": "",
+        "corpus": ""
+      },
+      "sandbox": {},
+      "namespace": "vector"
+    }
+  ]
+}
