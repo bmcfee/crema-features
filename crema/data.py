@@ -12,8 +12,7 @@ def jams_mapping(jams_in, task_map):
 
     output = {}
     for task in task_map:
-        task_out = task.transform(jam)
-        for key, value in six.iteritems(task_out):
+        for key, value in six.iteritems(task.transform(jam)):
             output[key] = np.asarray(value)[np.newaxis]
 
     return output

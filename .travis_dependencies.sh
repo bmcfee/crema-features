@@ -41,11 +41,7 @@ if [ ! -d "$src" ]; then
 
         pip install git+https://github.com/bmcfee/samplerate.git
         pip install python-coveralls
-        pip install git+https://github.com/craffel/mir_eval.git
-        pip install git+https://github.com/marl/jams.git
-        pip install -r https://raw.githubusercontent.com/Lasagne/Lasagne/master/requirements.txt
-        pip install git+https://github.com/Lasagne/Lasagne.git
-            
+
         source deactivate
     popd
 else
