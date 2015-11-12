@@ -31,3 +31,21 @@ def test_data_duration_fail():
                 flat=np.empty((2, 10)))
 
     crema.data.data_duration(data)
+
+
+def test_slice_data():
+
+    data = dict(ts1=np.random.randn(5, 50, 3, 3),
+                ts2=np.random.randn(5, 50, 7, 1),
+                flat1=np.random.randn(5),
+                flat2=np.random.randn(5, 100))
+
+    sample = slice(10, 20)
+
+    subsample = crema.data.slice_data(data, sample)
+
+    eq_(data.keys(), subsample.keys())
+    assert np.all(subsample['ts1'] == data['ts1'][:, sample])
+    assert np.all(subsample['ts2'] == data['ts2'][:, sample])
+    assert np.all(subsample['flat1'] == data['flat1'])
+    assert np.all(subsample['flat2'] == data['flat2'])
