@@ -68,3 +68,24 @@ def test_jams_mapping():
         for key in target:
             assert key in data
             assert np.allclose(target[key], data[key][0])
+
+
+def test_make_data():
+    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'], 
+                                        crema.dsp.librosa['hop_length']),
+             crema.task.VectorTransformer('vector', 64)]
+
+    cqt = crema.pre.CQT()
+
+    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, cqt)
+
+    feature = cqt.octensor(cqt.extract(TEST_FILE))
+    assert np.allclose(feature, data['input'][0])
+
+    jam = jams.load(TEST_JAMS)
+    for task in tasks:
+        target = task.transform(jam)
+
+        for key in target:
+            assert key in data
+            assert np.allclose(target[key], data[key][0])
