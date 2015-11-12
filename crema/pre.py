@@ -37,7 +37,18 @@ class CQT(object):
         return cqspec[:, :n_frames]
 
     def octensor(self, cqspec):
-        '''Convert a constant-q spectrogram to an octave tensor'''
+        '''Convert a constant-q spectrogram to an octave tensor
+
+        Parameters
+        ----------
+        cqspec : np.ndarray, shape=(n_bins, t)
+            Constant-Q spectrogram as produced by ``extract``
+
+        Returns
+        -------
+        tensor : np.ndarray, shape=(t, n_bins_per_slice, n_octaves)
+            cqspec re-arranged into (multi-)octave slices
+        '''
 
         # 1. pad C up to an even multiple of bins_per_octave
 
