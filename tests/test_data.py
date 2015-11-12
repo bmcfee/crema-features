@@ -89,3 +89,32 @@ def test_make_data():
         for key in target:
             assert key in data
             assert np.allclose(target[key], data[key][0])
+
+
+def test_sampler():
+    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'], 
+                                        crema.dsp.librosa['hop_length']),
+             crema.task.VectorTransformer('vector', 64)]
+
+    cqt = crema.pre.CQT()
+    all_data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, cqt)
+
+    def __test(n_samples, n_duration):
+        sampler = crema.data.sampler(TEST_FILE, TEST_JAMS, tasks, cqt,
+                                     n_samples, n_duration)
+
+        for i, s in enumerate(sampler):
+            eq_(set(s.keys()), set(all_data.keys()))
+
+            for key in s:
+                target_shape = list(all_data[key].shape)
+                if len(target_shape) > 2:
+                    target_shape[1] = n_duration
+
+                eq_(list(s[key].shape), target_shape)
+
+        eq_(i, n_samples-1)
+
+    for n_samples in [1, 2, 5]:
+        for n_duration in [2, 10, 30]:
+            yield __test, n_samples, n_duration
