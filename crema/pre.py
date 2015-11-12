@@ -52,14 +52,7 @@ class CQT(object):
 
         # 1. pad C up to an even multiple of bins_per_octave
 
-        n_bins = cqspec.shape[0]
         bins_per_octave = self.over_sample * 12
-        n_target = bins_per_octave * (n_bins // bins_per_octave)
-
-        if n_target > n_bins:
-            cqspec = np.pad(cqspec,
-                            [(0, n_target - n_bins), (0, 0)],
-                            mode='constant')
 
         # 2. carve C up into n_slice * bins_per_octave tiles,
         # strided by bins_per_octave
