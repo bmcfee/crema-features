@@ -71,7 +71,7 @@ def test_jams_mapping():
 
 
 def test_make_data():
-    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'], 
+    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'],
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
@@ -92,7 +92,7 @@ def test_make_data():
 
 
 def test_sampler():
-    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'], 
+    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'],
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
