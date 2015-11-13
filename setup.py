@@ -38,6 +38,7 @@ setup(
         'librosa>=0.4.1',
         'jams>=0.2.1',
         'presets>=0.1',
+        'shove',
     ],
     extras_require={
         'docs': ['numpydoc']
