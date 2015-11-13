@@ -4,6 +4,24 @@
 import numpy as np
 import six
 import jams
+import shove
+
+# A global feature cache object
+__CACHE = None
+
+
+def init_cache(uri):
+    '''Instantiate a feature cache with shove`
+
+    Parameters
+    ----------
+    uri : str
+        See shove.Shove() for details
+    '''
+
+    global __CACHE
+    __CACHE = shove.Shove(uri)
+    pass
 
 
 def jams_mapping(jams_in, task_map):
@@ -139,7 +157,15 @@ def make_task_data(audio_in, jams_in, task_map, cqt):
     data = jams_mapping(jams_in, task_map)
 
     # Load the audio data
-    data['input'] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
+    if __CACHE is not None:
+        if audio_in not in __CACHE:
+            __CACHE[audio_in] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
+            __CACHE.sync()
+
+        data['input'] = __CACHE[audio_in]
+
+    else:
+        data['input'] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
 
     return data
 

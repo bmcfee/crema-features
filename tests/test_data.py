@@ -118,3 +118,16 @@ def test_sampler():
     for n_samples in [1, 2, 5]:
         for n_duration in [2, 10, 30]:
             yield __test, n_samples, n_duration
+
+
+def test_data_cache():
+    # First, get the raw features
+    cqt = crema.pre.CQT()
+    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], cqt)
+
+    # Then create a cache
+    crema.data.init_cache('simple://')
+
+    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], cqt)
+
+    assert np.all(data['input'] == data2['input'])
