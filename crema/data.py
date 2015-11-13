@@ -10,7 +10,7 @@ import shove
 __CACHE = None
 
 
-def create_feature_cache(uri):
+def init_cache(uri):
     '''Instantiate a feature cache with shove`
 
     Parameters
@@ -160,6 +160,7 @@ def make_task_data(audio_in, jams_in, task_map, cqt):
     if __CACHE is not None:
         if audio_in not in __CACHE:
             __CACHE[audio_in] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
+            __CACHE.sync()
 
         data['input'] = __CACHE[audio_in]
 
