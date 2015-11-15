@@ -37,3 +37,38 @@ def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False,
                                        keep_dims=keep_dims))
 
     return output
+
+
+def ndsoftmax(input_tensor, reduction_indices, name=None):
+    '''n-dimensional soft-max
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor
+        The tensor to re-scale
+
+    reduction_indices : int or list of int
+        The axes along which to normalize
+
+    name : str (optional)
+        Name for this operator
+
+    Returns
+    -------
+    softmax_op : tf.Operator
+        The softmax operator
+    '''
+    with tf.name_scope(name):
+        x_max = tf.reduce_max(input_tensor,
+                              reduction_indices=reduction_indices,
+                              keep_dims=True)
+
+        x_rebase = input_tensor - x_max
+
+        ex = tf.exp(x_rebase)
+
+        output = ex / tf.reduce_sum(ex,
+                                    reduction_indices=reduction_indices,
+                                    keep_dims=True)
+
+    return output
