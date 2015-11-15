@@ -43,8 +43,7 @@ if [ ! -d "$src" ]; then
         pip install python-coveralls
 
         if [ "$TRAVIS_PYTHON_VERSION" == "2.7" ] ; then
-            # pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.5.0-cp27-none-linux_x86_64.whl 
-            conda install -c https://conda.anaconda.org/jjhelmus tensorflow 
+            pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.5.0-cp27-none-linux_x86_64.whl 
             export NOSE_FLAGS="--no-skip"
         fi
 
