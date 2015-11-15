@@ -86,6 +86,8 @@ def test_ndsoftmax():
         eq_(y_pred.shape, x.shape)
 
         assert np.allclose(y_true, y_pred)
+        assert np.all(np.isfinite(y_pred))
+        assert np.allclose(y_pred.sum(tuple(axis)), 1.0)
 
     for axis in [[0], [1], [2], [2, 3]]:
         yield __test, axis
