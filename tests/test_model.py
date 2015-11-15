@@ -16,8 +16,8 @@ def require_or_skip(module_name):
     def __wrapper(func, *args, **kwargs):
         try:
             __import__(module_name)
-        except ImportError:
-            raise SkipTest
+        except ImportError as err:
+            raise SkipTest(str(err))
 
         return func(*args, **kwargs)
 
