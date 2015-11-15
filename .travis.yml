@@ -16,8 +16,8 @@ notifications:
 
 python:
     - "2.7"
-    - "3.4"
-    - "3.5"
+      #     - "3.4"
+      #     - "3.5"
 
 before_install:
     - bash .travis_dependencies.sh
