@@ -2,33 +2,15 @@
 # -*- encoding: utf-8 -*-
 '''Tests for model components'''
 
-from decorator import decorator
-from nose.tools import eq_, raises
-from nose.plugins.skip import SkipTest
-
-import crema
 import numpy as np
 import scipy
+import tensorflow as tf
+from nose.tools import eq_
+
+import crema
 
 
-def require_or_skip(module_name):
-
-    def __wrapper(func, *args, **kwargs):
-        try:
-            __import__(module_name)
-        except ImportError as err:
-            raise SkipTest(str(err))
-
-        return func(*args, **kwargs)
-
-    return decorator(__wrapper)
-
-
-@require_or_skip('tensorflow')
 def test_gmean():
-
-    import tensorflow as tf
-    import crema.model.utils
 
     x = np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
@@ -44,7 +26,7 @@ def test_gmean():
             y_pred = sess.run(outvar, feed_dict={x_in: x})
 
         if keep_dims:
-            eq_(y_pred.shape, x.shape)
+            eq_(y_pred.ndim, x.ndim)
             y_pred = y_pred.squeeze()
 
         assert np.allclose(y_true, y_pred)
@@ -64,11 +46,7 @@ def __softmax(x, axes):
     return ex / ex.sum(axis=tuple(axes), keepdims=True)
 
 
-@require_or_skip('tensorflow')
 def test_ndsoftmax():
-
-    import tensorflow as tf
-    import crema.model.utils
 
     x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
@@ -90,5 +68,5 @@ def test_ndsoftmax():
         assert np.all(np.isfinite(y_pred))
         assert np.allclose(y_pred.sum(tuple(axis)), 1.0)
 
-    for axis in [[0], [1], [2], [2, 3]]:
+    for axis in [[0], [1], [2], [1, 2], [0, 2]]:
         yield __test, axis

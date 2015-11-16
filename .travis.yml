@@ -34,8 +34,7 @@ install:
 
 script:
     - python --version
-    - echo NOSE_FLAGS=="$NOSE_FLAGS"
-    - nosetests --with-coverage --cover-erase --cover-package=crema "$NOSE_FLAGS" -v -w tests/
+    - nosetests --with-coverage --cover-erase --cover-package=crema -v -w tests/
 
 after_success:
     - coveralls
