@@ -5,8 +5,7 @@
 import tensorflow as tf
 
 
-def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False,
-                 name=None):
+def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False):
     '''Geometric mean reduction.
 
     Parameters
@@ -20,16 +19,13 @@ def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False,
     keep_dims : bool
         Whether the reduced dimensions should be kept or not
 
-    name : str (optional)
-        Name for this operator
-
     Returns
     -------
     gmean_op : tf.Operator
         The geometric mean reduction operator
 
     '''
-    with tf.name_scope(name):
+    with tf.name_scope('gmean'):
         x_log = tf.log(input_tensor)
 
         output = tf.exp(tf.reduce_mean(x_log,
@@ -39,7 +35,7 @@ def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False,
     return output
 
 
-def ndsoftmax(input_tensor, reduction_indices, name=None):
+def ndsoftmax(input_tensor, reduction_indices):
     '''n-dimensional soft-max
 
     Parameters
@@ -50,15 +46,12 @@ def ndsoftmax(input_tensor, reduction_indices, name=None):
     reduction_indices : int or list of int
         The axes along which to normalize
 
-    name : str (optional)
-        Name for this operator
-
     Returns
     -------
     softmax_op : tf.Operator
         The softmax operator
     '''
-    with tf.name_scope(name):
+    with tf.name_scope('ndsoftmax'):
         x_max = tf.reduce_max(input_tensor,
                               reduction_indices=reduction_indices,
                               keep_dims=True)
