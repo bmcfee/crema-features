@@ -36,7 +36,7 @@ def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False):
 
 
 def ndsoftmax(input_tensor, reduction_indices):
-    '''n-dimensional soft-max
+    '''n-dimensional log soft-max
 
     Parameters
     ----------
@@ -50,6 +50,9 @@ def ndsoftmax(input_tensor, reduction_indices):
     -------
     softmax_op : tf.Operator
         The softmax operator
+
+    logit_op : tf.Operator
+        The corresponding logits
     '''
     with tf.name_scope('ndsoftmax'):
         x_max = tf.reduce_max(input_tensor,
@@ -60,8 +63,10 @@ def ndsoftmax(input_tensor, reduction_indices):
 
         ex = tf.exp(x_rebase)
 
-        output = ex / tf.reduce_sum(ex,
-                                    reduction_indices=reduction_indices,
-                                    keep_dims=True)
+        logits = x_rebase - tf.log(tf.reduce_sum(ex,
+                                                 reduction_indices=reduction_indices,
+                                                 keep_dims=True))
+        softmax = tf.exp(logits)
 
-    return output
+    return softmax, logits
+
