@@ -7,6 +7,8 @@ import numpy as np
 
 from nose.tools import eq_, raises
 
+import pandas as pd
+
 import crema
 import crema.data
 
@@ -81,7 +83,7 @@ def test_make_data():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     feature = crema_input.extract(TEST_FILE)
-    assert np.allclose(feature['input_cqt'], data['input_cqt'][0])
+    assert np.allclose(feature['input_crema_input'], data['input_crema_input'][0])
 
     jam = jams.load(TEST_JAMS)
     for task in tasks:
@@ -131,4 +133,52 @@ def test_data_cache():
 
     data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
-    assert np.all(data['input_cqt'] == data2['input_cqt'])
+    assert np.all(data['input_crema_input'] == data2['input_crema_input'])
+
+
+def test_create_stream():
+
+    sources = pd.read_csv('data/test_index.csv')
+
+    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
+                                         crema.dsp.librosa['hop_length'])]
+
+    crema_input = crema.pre.CremaInput()
+
+    def __test(n_duration):
+        streamer = crema.data.create_stream(sources, tasks, crema_input, n_duration=n_duration)
+
+        # Bound the stream to 10 examples, otherwise we'll run forever
+        for sample, _ in zip(streamer.generate(), range(10)):
+            eq_(sample['input_cqt'].shape[1], n_duration)
+
+    for n_duration in [1, 8, 16]:
+        yield __test, n_duration
+
+
+def test_mux_streams():
+    sources = pd.read_csv('data/test_index.csv')
+
+    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
+                                         crema.dsp.librosa['hop_length'])]
+
+    crema_input = crema.pre.CremaInput()
+
+
+    streams = [crema.data.create_stream(sources, tasks, crema_input, n_duration=8) 
+               for _ in range(3)]
+
+    def __test(n_samples, n_batch):
+
+        mux = crema.data.mux_streams(streams, n_samples, n_batch)
+
+        for n, batch in enumerate(mux.generate()):
+            for key in batch:
+                eq_(batch[key].shape[0], n_batch)
+
+        eq_(n+1, n_samples//min(n_samples, n_batch))
+
+    for n_samples in [10, 20, 40]:
+        for n_batch in [5, 10]:
+            yield __test, n_samples, n_batch
+
