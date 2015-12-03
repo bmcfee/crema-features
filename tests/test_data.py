@@ -8,6 +8,7 @@ import numpy as np
 from nose.tools import eq_, raises
 
 import crema
+import crema.data
 
 TEST_FILE = 'data/test1_44100.wav'
 TEST_JAMS = 'data/test1_44100.jams'
