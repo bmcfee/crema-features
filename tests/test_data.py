@@ -129,11 +129,13 @@ def test_data_cache():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
-    crema.data.init_cache('simple://')
+    cache = crema.data.init_cache('simple://')
 
-    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
+    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
+    data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
 
-    assert np.all(data['input_crema_input'] == data2['input_crema_input'])
+    assert np.all(data['input_cqt'] == data2['input_Cqt'])
+    assert np.all(data2['input_cqt'] == data3['input_cqt'])
 
 
 def test_create_stream():

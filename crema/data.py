@@ -7,9 +7,6 @@ import jams
 import pescador
 import shove
 
-# A global feature cache object
-__CACHE = None
-
 
 def init_cache(uri):
     '''Instantiate a feature cache with shove`
@@ -20,9 +17,7 @@ def init_cache(uri):
         See shove.Shove() for details
     '''
 
-    global __CACHE
-    __CACHE = shove.Shove(uri)
-    pass
+    return shove.Shove(uri)
 
 
 def jams_mapping(jams_in, task_map):
@@ -127,7 +122,7 @@ def data_duration(data):
     return int(n)
 
 
-def make_task_data(audio_in, jams_in, task_map, crema_input):
+def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     '''Construct a full-length data point
 
     Parameters
@@ -144,6 +139,8 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     crema_input : crema.pre.CremaInput
         The input feature extraction object
 
+    cache : Shove or None
+        A cache object for pre-computed input features
 
     Returns
     -------
@@ -158,12 +155,12 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     data = jams_mapping(jams_in, task_map)
 
     # Load the audio data
-    if __CACHE is not None:
-        if audio_in not in __CACHE:
-            __CACHE[audio_in] = crema_input.extract(audio_in)
-            __CACHE.sync()
+    if cache is not None:
+        if audio_in not in cache:
+            cache[audio_in] = crema_input.extract(audio_in)
+            cache.sync()
 
-        features = __CACHE[audio_in]
+        features = cache[audio_in]
     else:
         features = crema_input.extract(audio_in)
 
@@ -173,7 +170,7 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     return data
 
 
-def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
+def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cache=None):
     '''Construct sample data for learning
 
     Parameters
@@ -196,13 +193,16 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
     n_duration : int > 0
         The duration (in frames) for each patch
 
+    cache : Shove or None
+        Feature cache object
+
     Generates
     ---------
     data : dict
         An example patch drawn uniformly at random from the track
     '''
 
-    data = make_task_data(audio_in, jams_in, task_map, crema_input)
+    data = make_task_data(audio_in, jams_in, task_map, crema_input, cache=cache)
 
     feature_duration = data_duration(data)
 
@@ -212,7 +212,7 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
         yield slice_data(data, slice(start, start + n_duration))
 
 
-def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=32):
+def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=32, cache=None):
     '''Create a crema data stream
 
     Parameters
@@ -235,13 +235,16 @@ def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=3
     n_alive : int > 0
         The number of sources to keep active
 
+    cache : Shove or None
+        feature cache object
+
     Returns
     -------
     mux : pescador.Streamer
         A multiplexing stream object over the sources
     '''
     # Create the seed bank
-    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, cqt, n_per_track, n_duration)
+    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, cqt, n_per_track, n_duration, cache=cache)
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
