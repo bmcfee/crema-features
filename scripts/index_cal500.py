@@ -21,7 +21,7 @@ def process_args(args):
 
 def jam_to_audio(jam_file):
 
-    jam = jams.load(jam_file, validate=False)
+    jam = jams.load(jam_file)
 
     return jam.sandbox.content_path
 
