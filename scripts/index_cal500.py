@@ -13,6 +13,9 @@ def process_args(args):
 
     parser = argparse.ArgumentParser(description='Index CAL500 data')
 
+    parser.add_argument('-a', '--audio-ext', type=str, default='wav', help='Audio file extension', dest='aud_ext')
+    parser.add_argument('-j', '--jams-ext', type=str, default='jams', help='Audio file extension', dest='jams_ext')
+    parser.add_argument('-s', '--split-ext', default=False, help='Split audio extension for indexing', dest='split_ext', action='store_true')
     parser.add_argument(dest='source_dir', type=str, help='Path to data')
     parser.add_argument(dest='output_file', type=str, help='Path to save index file')
 
@@ -26,20 +29,24 @@ def jam_to_audio(jam_file):
     return jam.sandbox.content_path
 
 
-def index_audio(audio_files):
+def index_audio(audio_files, split_ext):
 
-    return {os.path.splitext(os.path.basename(fn))[0]: fn
+    if split_ext:
+        idx = lambda x : os.path.splitext(x)[0]
+    else:
+        idx = lambda x : x
+    return {idx(os.path.basename(fn)): fn
             for fn in audio_files}
 
 
-def index_data(source_dir, output_file):
+def index_data(source_dir, output_file, aud_ext, jams_ext, split_ext):
 
-    audio_files = jams.util.find_with_extension(source_dir, 'mp3', depth=5)
-    ann_files = jams.util.find_with_extension(source_dir, 'jamz', depth=5)
+    audio_files = jams.util.find_with_extension(source_dir, aud_ext, depth=5)
+    ann_files = jams.util.find_with_extension(source_dir, jams_ext, depth=5)
 
     df = pd.DataFrame(columns=['audio', 'jams', 'key'])
 
-    audio_index = index_audio(audio_files)
+    audio_index = index_audio(audio_files, split_ext)
     keys = [jam_to_audio(jf) for jf in ann_files]
 
     df['audio'] = [audio_index[k] for k in keys]
