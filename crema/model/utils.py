@@ -70,3 +70,41 @@ def ndsoftmax(input_tensor, reduction_indices):
 
     return softmax, logits
 
+
+def whiten(input_tensor, s_min=1e-10, name=None):
+    '''Per-sample whitening:
+        input_tensor[i] -> zscore(input_tensor[i])
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor
+        The tensor to whiten
+
+    s_min : float > 0
+        Clip standard deviation
+
+    name : str [optional]
+        Name scope for the whitening operator
+
+    Returns
+    -------
+    whitened_tensor : tf.Operator
+        Operator which computes the locally whitened input tensor
+    '''
+    ndim = len(input_tensor.get_shape())
+    reduction_idx = list(range(1, ndim))
+
+    with tf.name_scope(name):
+        mean = tf.reduce_mean(input_tensor,
+                              reduction_indices=reduction_idx,
+                              keep_dims=True)
+
+        centered = input_tensor - mean
+
+        std = tf.pow(tf.reduce_mean(tf.pow(centered, 2),
+                                    reduction_indices=reduction_idx,
+                                    keep_dims=True),
+                     0.5)
+        zscored = tf.div(centered, tf.maximum(s_min, std))
+
+    return zscored

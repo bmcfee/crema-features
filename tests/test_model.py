@@ -71,3 +71,30 @@ def test_ndsoftmax():
 
     for axis in [[0], [1], [2], [1, 2], [0, 2]]:
         yield __test, axis
+
+
+def __whiten(x):
+
+    z = np.zeros_like(x)
+
+    for i in range(x.shape[0]):
+        z[i] = scipy.stats.zscore(x[i], axis=None)
+
+    return z
+
+
+def test_whiten():
+    x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32) + 30
+
+    x_in = tf.placeholder(tf.float32, shape=(5,5,5), name='x')
+
+    outvars = crema.model.utils.whiten(x_in, s_min=0.0)
+
+    with tf.Session() as sess:
+        y_pred = sess.run(outvars, feed_dict={x_in: x})
+
+    y_true = __whiten(x)
+
+    eq_(y_pred.shape, x.shape)
+    assert np.allclose(y_true, y_pred)
+
