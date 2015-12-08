@@ -30,7 +30,8 @@ def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False):
 
         output = tf.exp(tf.reduce_mean(x_log,
                                        reduction_indices=reduction_indices,
-                                       keep_dims=keep_dims))
+                                       keep_dims=keep_dims),
+                        name='activation')
 
     return output
 
@@ -66,7 +67,7 @@ def ndsoftmax(input_tensor, reduction_indices):
         logits = x_rebase - tf.log(tf.reduce_sum(ex,
                                                  reduction_indices=reduction_indices,
                                                  keep_dims=True))
-        softmax = tf.exp(logits)
+        softmax = tf.exp(logits, name='activation')
 
     return softmax, logits
 
@@ -105,6 +106,6 @@ def whiten(input_tensor, s_min=1e-10, name=None):
                                     reduction_indices=reduction_idx,
                                     keep_dims=True),
                      0.5)
-        zscored = tf.div(centered, tf.maximum(s_min, std))
+        zscored = tf.div(centered, tf.maximum(s_min, std), name='activation')
 
     return zscored
