@@ -86,7 +86,7 @@ def __whiten(x):
 def test_whiten():
     x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32) + 30
 
-    x_in = tf.placeholder(tf.float32, shape=(5,5,5), name='x')
+    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
     outvars = crema.model.utils.whiten(x_in, s_min=0.0)
 
@@ -96,5 +96,5 @@ def test_whiten():
     y_true = __whiten(x)
 
     eq_(y_pred.shape, x.shape)
-    assert np.allclose(y_true, y_pred)
+    assert np.allclose(y_true, y_pred, atol=1e-6)
 
