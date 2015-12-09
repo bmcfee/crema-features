@@ -75,12 +75,12 @@ def test_make_data():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    cqt = crema.pre.CQT()
+    crema_input = crema.pre.CremaInput()
 
-    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, cqt)
+    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
-    feature = cqt.octensor(cqt.extract(TEST_FILE))
-    assert np.allclose(feature, data['input'][0])
+    feature = crema_input.extract(TEST_FILE)
+    assert np.allclose(feature['input_cqt'], data['input_cqt'][0])
 
     jam = jams.load(TEST_JAMS)
     for task in tasks:
@@ -96,11 +96,11 @@ def test_sampler():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    cqt = crema.pre.CQT()
-    all_data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, cqt)
+    crema_input = crema.pre.CremaInput()
+    all_data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     def __test(n_samples, n_duration):
-        sampler = crema.data.sampler(TEST_FILE, TEST_JAMS, tasks, cqt,
+        sampler = crema.data.sampler(TEST_FILE, TEST_JAMS, tasks, crema_input,
                                      n_samples, n_duration)
 
         for i, s in enumerate(sampler):
@@ -122,12 +122,12 @@ def test_sampler():
 
 def test_data_cache():
     # First, get the raw features
-    cqt = crema.pre.CQT()
-    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], cqt)
+    crema_input = crema.pre.CremaInput()
+    data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
     crema.data.init_cache('simple://')
 
-    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], cqt)
+    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
-    assert np.all(data['input'] == data2['input'])
+    assert np.all(data['input_cqt'] == data2['input_cqt'])

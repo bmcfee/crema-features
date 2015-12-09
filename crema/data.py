@@ -126,7 +126,7 @@ def data_duration(data):
     return int(n)
 
 
-def make_task_data(audio_in, jams_in, task_map, cqt):
+def make_task_data(audio_in, jams_in, task_map, crema_input):
     '''Construct a full-length data point
 
     Parameters
@@ -140,14 +140,14 @@ def make_task_data(audio_in, jams_in, task_map, cqt):
     task_map : iterable of crema.task.BaseTaskTransformers
         Objects to transform jams annotations into crema targets
 
-    cqt : crema.pre.CQT
-        The CQT feature extraction object
+    crema_input : crema.pre.CremaInput
+        The input feature extraction object
 
 
     Returns
     -------
     data : dict
-        Contains the audio CQT tensor (``input``) and all output variables
+        Contains the input features and all output variables
         and masks as specified by ``task_map``.
 
         Each entry of ``data`` is a numpy array.
@@ -159,18 +159,20 @@ def make_task_data(audio_in, jams_in, task_map, cqt):
     # Load the audio data
     if __CACHE is not None:
         if audio_in not in __CACHE:
-            __CACHE[audio_in] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
+            __CACHE[audio_in] = crema_input.extract(audio_in)
             __CACHE.sync()
 
-        data['input'] = __CACHE[audio_in]
-
+        features = __CACHE[audio_in]
     else:
-        data['input'] = cqt.octensor(cqt.extract(audio_in))[np.newaxis]
+        features = crema_input.extract(audio_in)
+
+    for key in features:
+        data[key] = features[key][np.newaxis]
 
     return data
 
 
-def sampler(audio_in, jams_in, task_map, cqt, n_samples, n_duration):
+def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
     '''Construct sample data for learning
 
     Parameters
@@ -184,8 +186,8 @@ def sampler(audio_in, jams_in, task_map, cqt, n_samples, n_duration):
     task_map : iterable of crema.task.BaseTaskTransformers
         Objects to transform jams annotations into crema targets
 
-    cqt : crema.pre.CQT
-        The CQT feature extraction object
+    crema_input : crema.pre.CremaInput
+        The input feature extraction object
 
     n_samples : int > 0
         The number of example patches to generate
@@ -199,11 +201,11 @@ def sampler(audio_in, jams_in, task_map, cqt, n_samples, n_duration):
         An example patch drawn uniformly at random from the track
     '''
 
-    data = make_task_data(audio_in, jams_in, task_map, cqt)
+    data = make_task_data(audio_in, jams_in, task_map, crema_input)
 
     feature_duration = data_duration(data)
 
     for _ in range(n_samples):
-        start = np.random.randint(0, feature_duration-n_duration)
+        start = np.random.randint(0, feature_duration - n_duration)
 
         yield slice_data(data, slice(start, start + n_duration))

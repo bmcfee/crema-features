@@ -7,7 +7,7 @@ import numpy as np
 from .dsp import librosa
 
 
-class CQT(object):
+class CremaInput(object):
 
     def __init__(self, n_octaves=8, over_sample=3, n_slice=2,
                  fmin=None, dtype=np.float32):
@@ -27,6 +27,31 @@ class CQT(object):
         '''Extract Constant-Q spectra from an input file'''
 
         y, _ = librosa.load(infile)
+
+        # Construct the feature dictionary
+        features = dict()
+
+        # Extract the cqt spectrogram
+        cqspec = self._cqt(y)
+
+        # Populate the feature dictionary
+        features['input_cqt'] = self._octensor(cqspec)
+        return features
+
+    def _cqt(self, y):
+        '''Convert an audio time series to a CQT spectrogram
+
+        Parameters
+        ----------
+        y : np.ndarray, shape=(t,)
+            Audio time series
+
+        Returns
+        -------
+        cqspec : np.ndarray, shape=(n_bins, t)
+            Constant-Q spectrogram
+        '''
+
         n_frames = librosa.time_to_frames(librosa.get_duration(y))
 
         cqspec = librosa.cqt(y,
@@ -34,15 +59,16 @@ class CQT(object):
                              bins_per_octave=12 * self.over_sample,
                              fmin=self.fmin).astype(self.dtype)
 
+        # Trim to the target number of frames
         return cqspec[:, :n_frames]
 
-    def octensor(self, cqspec):
+    def _octensor(self, cqspec):
         '''Convert a constant-q spectrogram to an octave tensor
 
         Parameters
         ----------
         cqspec : np.ndarray, shape=(n_bins, t)
-            Constant-Q spectrogram as produced by ``extract``
+            Constant-Q spectrogram as produced by ``_cqt``
 
         Returns
         -------
