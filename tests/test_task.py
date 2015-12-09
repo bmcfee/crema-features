@@ -78,6 +78,8 @@ def test_task_chord_absent():
     assert not np.any(output['output_pitches'])
     assert not np.any(output['output_root'][:, :12])
     assert not np.any(output['output_bass'][:, :12])
+    assert np.all(output['output_root'][:, 12])
+    assert np.all(output['output_bass'][:, 12])
 
 
 def test_task_tslabel_present():
