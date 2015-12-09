@@ -59,7 +59,8 @@ def test_ndsoftmax():
         outvars = crema.model.utils.ndsoftmax(x_in, reduction_indices=axis)
 
         with tf.Session() as sess:
-            y_pred, y_logits = sess.run(outvars, feed_dict={x_in: x})
+            y_logits = sess.run(outvars, feed_dict={x_in: x})
+            y_pred = np.exp(y_logits)
 
         eq_(y_pred.shape, x.shape)
 
@@ -67,7 +68,6 @@ def test_ndsoftmax():
         assert np.all(y_pred >= 0)
         assert np.all(np.isfinite(y_pred))
         assert np.allclose(y_pred.sum(tuple(axis)), 1.0)
-        assert np.allclose(np.exp(y_logits), y_true)
 
     for axis in [[0], [1], [2], [1, 2], [0, 2]]:
         yield __test, axis
