@@ -10,29 +10,36 @@ from nose.tools import eq_
 TEST_FILE = 'data/test1_44100.wav'
 
 
-def test_input_shape():
+def test_input_cqt_shape():
 
-    def __test(n_octaves, over_sample):
-        CQT = crema.pre.CQT(n_octaves=n_octaves, over_sample=over_sample)
+    def __test(n_octaves, over_sample, n_slice):
+        CremaInput = crema.pre.CremaInput(n_octaves=n_octaves,
+                                          over_sample=over_sample,
+                                          n_slice=n_slice)
 
-        C = CQT.extract(TEST_FILE)
+        C = CremaInput.extract(TEST_FILE)['input_cqt']
 
-        eq_(C.shape[0], 12 * n_octaves * over_sample)
+        eq_(C.shape[1], 12 * over_sample * n_slice)
+        eq_(C.shape[2], n_octaves - n_slice + 1)
 
     for n_octaves in [3, 4, 5]:
         for over_sample in [1, 2, 3]:
-            yield __test, n_octaves, over_sample
+            for n_slice in [1, 2, 3]:
+                yield __test, n_octaves, over_sample, n_slice
 
 
 def test_octensor():
 
-    def __test(n_octaves, over_sample, n_slice):
-        CQT = crema.pre.CQT(n_octaves=n_octaves,
-                            over_sample=over_sample,
-                            n_slice=n_slice)
+    from crema.dsp import librosa
+    y, _ = librosa.load(TEST_FILE)
 
-        cqspec = CQT.extract(TEST_FILE)
-        octensor = CQT.octensor(cqspec)
+    def __test(n_octaves, over_sample, n_slice):
+        CremaInput = crema.pre.CremaInput(n_octaves=n_octaves,
+                                          over_sample=over_sample,
+                                          n_slice=n_slice)
+
+        cqspec = CremaInput._cqt(y)
+        octensor = CremaInput._octensor(cqspec)
 
         # Make sure our shapes line up
         eq_(octensor.ndim, 3)
