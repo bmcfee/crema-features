@@ -83,7 +83,7 @@ def test_make_data():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     feature = crema_input.extract(TEST_FILE)
-    assert np.allclose(feature['input_crema_input'], data['input_crema_input'][0])
+    assert np.allclose(feature['input_cqt'], data['input_cqt'][0])
 
     jam = jams.load(TEST_JAMS)
     for task in tasks:
@@ -134,7 +134,7 @@ def test_data_cache():
     data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
     data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
 
-    assert np.all(data['input_cqt'] == data2['input_Cqt'])
+    assert np.all(data['input_cqt'] == data2['input_cqt'])
     assert np.all(data2['input_cqt'] == data3['input_cqt'])
 
 
