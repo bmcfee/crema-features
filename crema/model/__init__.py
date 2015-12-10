@@ -2,4 +2,4 @@
 # -*- encoding: utf-8 -*-
 '''Model specification'''
 
-from . import utils
+from . import ops

@@ -19,7 +19,7 @@ def test_gmean():
 
         x_in = tf.placeholder(tf.float32, shape=(5, 5, 5), name='x')
 
-        outvar = crema.model.utils.reduce_gmean(x_in, reduction_indices=[axis],
+        outvar = crema.model.ops.reduce_gmean(x_in, reduction_indices=[axis],
                                                 keep_dims=keep_dims)
 
         with tf.Session() as sess:
@@ -56,7 +56,7 @@ def test_ndsoftmax():
 
         x_in = tf.placeholder(tf.float32, shape=(5, 5, 5), name='x')
 
-        outvars = crema.model.utils.ndsoftmax(x_in, reduction_indices=axis)
+        outvars = crema.model.ops.ndsoftmax(x_in, reduction_indices=axis)
 
         with tf.Session() as sess:
             y_logits = sess.run(outvars, feed_dict={x_in: x})
@@ -88,7 +88,7 @@ def test_whiten():
 
     x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
-    outvars = crema.model.utils.whiten(x_in, s_min=0.0)
+    outvars = crema.model.ops.whiten(x_in, s_min=0.0)
 
     with tf.Session() as sess:
         y_pred = sess.run(outvars, feed_dict={x_in: x})
