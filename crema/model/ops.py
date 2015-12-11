@@ -3,6 +3,7 @@
 '''Model utilities'''
 
 import tensorflow as tf
+from . import init
 
 
 def reduce_gmean(input_tensor, reduction_indices=None, keep_dims=False):
@@ -105,3 +106,49 @@ def whiten(input_tensor, s_min=1e-10, name=None):
         zscored = tf.div(centered, tf.maximum(s_min, std), name='activation')
 
     return zscored
+
+
+def gain(input_tensor, default=10.0, name=None):
+    '''Band-parametric mu-law scaling.
+
+    https://en.wikipedia.org/wiki/%CE%9C-law_algorithm
+
+        output[f] = log(1 + W[f] * input[f]) / log(1 + W[f])
+
+    where ``f`` denotes a frequency band, and ``W`` denotes a (non-negative)
+    scaling coefficient.
+
+    Parameters
+    ----------
+    input_tensor : tf.Operator
+        The tensor to scale
+
+    default : float > 0
+        The initial value for scaling
+
+    name : str
+        The name of this operator node
+
+
+    Returns
+    -------
+    scaler : tf.Operator
+        The scaling operator
+    '''
+    shape = input_tensor.get_shape()
+
+    with tf.name_scope(name):
+        weight = init.constant([1, 1, int(shape[2]), int(shape[3])],
+                               name='weight',
+                               default=default)
+
+        x_pow = tf.abs(input_tensor)
+
+        w_mag = tf.nn.softplus(weight)
+
+        output = tf.div(tf.log(1.0 + tf.mul(x_pow, w_mag)),
+                        tf.log(1.0 + w_mag),
+                        name='activation')
+
+    return output
+
