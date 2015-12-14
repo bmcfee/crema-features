@@ -98,3 +98,32 @@ def test_whiten():
     eq_(y_pred.shape, x.shape)
     assert np.allclose(y_true, y_pred, atol=1e-6)
 
+
+def __gain(x, default):
+
+    x_pow = np.abs(x)
+
+    weight = default * np.ones((1, 1, x.shape[2], x.shape[3]))
+
+    w_mag = np.log1p(np.exp(weight))
+
+    return np.log1p(x * w_mag) / np.log1p(w_mag)
+
+
+def test_gain():
+    x = 100 * np.abs(np.random.randn(16, 96, 36, 8), dtype=np.float32) + 30
+
+    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+
+    outvars = crema.model.ops.gain(x_in, default=1.0)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        y_pred = sess.run(outvars, feed_dict={x_in: x})
+
+    y_true = __gain(x, default=1.0)
+
+    eq_(y_pred.shape, x.shape)
+    assert np.allclose(y_true, y_pred, atol=1e-6)
+
+
