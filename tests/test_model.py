@@ -127,3 +127,19 @@ def test_gain():
     assert np.allclose(y_true, y_pred, atol=1e-6)
 
 
+def test_he_std():
+
+    def __test(shape, sym, target):
+
+        pred = crema.model.init.he_std(shape, sym)
+
+        eq_(pred, target)
+
+
+    yield __test, [1, 1, 1, 1], True, 1
+    yield __test, [1, 1, 1, 1], False, np.sqrt(2)
+    yield __test, [1, 1, 1, 10], True, 1
+    yield __test, [1, 1, 1, 10], False, np.sqrt(2)
+    yield __test, [3, 5, 2, 10], True, np.power(3 * 5 * 2, -0.5)
+    yield __test, [3, 5, 2, 10], False, np.sqrt(2) * np.power(3 * 5 * 2, -0.5)
+
