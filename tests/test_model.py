@@ -143,3 +143,17 @@ def test_he_std():
     yield __test, [3, 5, 2, 10], True, np.power(3 * 5 * 2, -0.5)
     yield __test, [3, 5, 2, 10], False, np.sqrt(2) * np.power(3 * 5 * 2, -0.5)
 
+
+def test_constant():
+
+    value = 3.0
+    shape = (2, 4, 8, 16)
+
+    w = crema.model.init.constant(shape, default=value)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        w_out = sess.run(w)
+
+    eq_(w_out.shape, shape)
+    assert np.allclose(w_out, value)
