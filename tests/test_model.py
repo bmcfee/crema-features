@@ -4,6 +4,7 @@
 
 import numpy as np
 import scipy
+import scipy.stats
 import tensorflow as tf
 from nose.tools import eq_
 
@@ -157,3 +158,35 @@ def test_constant():
 
     eq_(w_out.shape, shape)
     assert np.allclose(w_out, value)
+
+
+def test_he_normal():
+
+    def __test(shape, sym):
+
+        w = crema.model.init.he_normal(shape, sym=sym)
+
+        with tf.Session() as sess:
+            sess.run(tf.initialize_all_variables())
+            w_out = sess.run(w)
+
+        if sym:
+            gain = 1.0
+        else:
+            gain = np.sqrt(2.0)
+
+        # Model the truncated normal effect
+        # This constant = sqrt(1 - 4 * pdf(2) / (cdf(2) - cdf(-2)))
+        # computes the effective standard deviation of tensorflow's truncated normal
+        # sampling
+        std_target = gain * np.prod(shape[:-1])**(-0.5)
+
+        # Make sure that we're close to zero-mean
+        print(np.abs(np.mean(w_out)), np.std(w_out, ddof=1)**2, std_target**2)
+        assert np.abs(np.mean(w_out)) <= 1e-2
+        assert np.abs(np.var(w_out) - std_target**2) <= 1e-3
+
+    for n_w in [3, 9, 23]:
+        for n_c in [3, 7]:
+            for sym in [False, True]:
+                yield __test, (n_w, n_w, n_c, 1000), sym

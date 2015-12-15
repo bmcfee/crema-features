@@ -59,7 +59,15 @@ def he_normal(shape, name='weight', sym=False, dtype=tf.float32):
 
     sigma = he_std(shape, sym)
 
-    initial = tf.truncated_normal(shape, mean=0.0, stddev=sigma, dtype=dtype)
+    # This constant = sqrt(1 - 4 * pdf(2) / (cdf(2) - cdf(-2)))
+    # computes the effective standard deviation of tensorflow's truncated normal
+    # sampling
+    trunc_scale = 0.87962566103423978
+
+    initial = tf.truncated_normal(shape,
+                                  mean=0.0,
+                                  stddev=sigma / trunc_scale,
+                                  dtype=dtype)
 
     return tf.Variable(initial, name=name)
 
