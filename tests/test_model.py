@@ -161,6 +161,7 @@ def test_constant():
 
 
 def test_he_normal():
+    tf.set_random_seed(1234)
 
     def __test(shape, sym):
         w = crema.model.init.he_normal(shape, sym=sym)
@@ -187,6 +188,8 @@ def test_he_normal():
 
 
 def test_he_uniform():
+
+    tf.set_random_seed(1234)
 
     def __test(shape, sym):
         w = crema.model.init.he_uniform(shape, sym=sym)
