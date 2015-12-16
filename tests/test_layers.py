@@ -11,6 +11,8 @@ from nose.tools import eq_
 import crema
 
 
+tf.set_random_seed(12345)
+
 def test_conv2_layer():
 
     def __test(shape, n_filters, nl, strides, mode, squeeze):

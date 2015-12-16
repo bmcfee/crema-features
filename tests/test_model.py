@@ -11,6 +11,8 @@ from nose.tools import eq_
 import crema
 
 
+tf.set_random_seed(12345)
+
 def test_gmean():
 
     x = np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
@@ -161,7 +163,7 @@ def test_constant():
 
 
 def test_he_normal():
-    tf.set_random_seed(1234)
+    tf.set_random_seed(12345)
 
     def __test(shape, sym):
         w = crema.model.init.he_normal(shape, sym=sym)
@@ -189,7 +191,7 @@ def test_he_normal():
 
 def test_he_uniform():
 
-    tf.set_random_seed(1234)
+    tf.set_random_seed(12345)
 
     def __test(shape, sym):
         w = crema.model.init.he_uniform(shape, sym=sym)
