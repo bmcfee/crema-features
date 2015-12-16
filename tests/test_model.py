@@ -213,3 +213,22 @@ def test_he_uniform():
         for n_c in [3, 7]:
             for sym in [False, True]:
                 yield __test, (n_w, n_w, n_c, 1000), sym
+
+
+def test_expand_mask():
+
+    x = np.random.randn(100) > 0.0
+
+    x_in = tf.placeholder(tf.bool, shape=x.shape, name='x')
+
+    outvars = crema.model.ops.expand_mask(x_in)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        y_pred = sess.run(outvars, feed_dict={x_in: x})
+
+    eq_(y_pred.ndim, 3)
+    eq_(y_pred.shape[0], x.shape[0])
+    eq_(y_pred.size, x.shape[0])
+    assert np.issubdtype(y_pred.dtype, np.float)
+    assert np.allclose(y_pred.squeeze(), x.astype(float))
