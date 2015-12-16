@@ -58,4 +58,33 @@ def test_conv2_layer():
                     for mode in ['SAME', 'VALID']:
                         yield __test, shape, n_filters, nl, strides, mode, None
 
+def test_conv2_multilabel():
+    x = np.random.randn(20, 5, 5, 7)
 
+    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+
+    output = crema.model.layers.conv2_multilabel(x_in, 10)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        log_y = sess.run(output, feed_dict={x_in: x})
+
+    y = np.exp(log_y)
+
+    assert np.all(y >= 0) and np.all(y <= 1.0)
+
+def test_conv2_softmax():
+    x = np.random.randn(10, 5, 1, 3)
+
+    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+
+    output = crema.model.layers.conv2_softmax(x_in, 8)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        log_y = sess.run(output, feed_dict={x_in: x})
+
+    y = np.exp(log_y)
+
+    assert np.all(y >= 0) and np.all(y <= 1.0)
+    assert np.allclose(np.sum(y, axis=-1), np.ones(y.shape[:-1]))
