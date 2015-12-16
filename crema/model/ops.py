@@ -152,3 +152,70 @@ def gain(input_tensor, default=10.0, name=None):
 
     return output
 
+
+def logsigmoid(input_tensor, name='logsigmoid'):
+    '''Compute the log-sigmoid of an input tensor:
+
+        ``f(x) = - log(1 + exp(-x))``
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor
+        The input tensor to scale
+
+    Returns
+    -------
+    logsigmoid : tf.Operator
+        The log-sigmoid operator
+    '''
+    with tf.name_scope(name):
+        output = tf.neg(tf.nn.softplus(-input_tensor))
+    return output
+
+
+def conv2_softmax_crossentropy(logits, labels, reduction_indices, name=None):
+    '''Convolutional softmax cross-entropy
+
+    Parameters
+    ----------
+    logits : tf.Tensor
+        The input logits (log probabilities)
+
+    labels : tf.Tesnor
+        The target labels
+
+    reduction_indices : list of int
+        Axes along which to reduce the predictions
+
+    name : str
+        Name for this node
+
+    Returns
+    -------
+    conv_softmax : tf.Operator
+        The convolutional softmax operator
+    '''
+    with tf.name_scope(name):
+        output = -tf.reduce_sum(tf.mul(logits, labels), reduction_indices)
+
+    return output
+
+
+def expand_mask(mask, name=None):
+    '''Expand the binary mask for an observation.
+
+    Parameters
+    ----------
+    mask : tf.Tensor [shape=(n,), dtype=bool]
+        Input binary mask
+
+    Returns
+    -------
+    expand : tf.Operator
+        Output binary mask.  Will have shape (n, 1, 1) and dtype=float.
+    '''
+    with tf.name_scope(name):
+        f_mask = tf.to_float(mask)
+        z_mask = tf.reshape(f_mask, (-1, 1, 1))
+
+    return z_mask
