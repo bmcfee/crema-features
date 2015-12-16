@@ -3,3 +3,4 @@
 '''Model specification'''
 
 from . import ops
+from . import layers
