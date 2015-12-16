@@ -173,8 +173,8 @@ def logsigmoid(input_tensor, name='logsigmoid'):
     return output
 
 
-def conv2_softmax_crossentropy(logits, labels, reduction_indices, name=None):
-    '''Convolutional softmax cross-entropy
+def ndxent(logits, labels, reduction_indices, name=None):
+    '''N-dimensional cross-entropy
 
     Parameters
     ----------

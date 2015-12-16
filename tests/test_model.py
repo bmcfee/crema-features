@@ -251,7 +251,7 @@ def test_logsigmoid():
     assert np.allclose(y_pred, y_true)
 
 
-def test_conv_softmax_xent():
+def test_ndsoftmax_xent():
 
     x = np.random.randn(50, 100, 30)
     y = (np.random.randn(*x.shape) > 0).astype(np.float)
@@ -260,7 +260,7 @@ def test_conv_softmax_xent():
         x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
         y_in = tf.placeholder(tf.float32, shape=x.shape, name='y')
 
-        outvars = crema.model.ops.conv2_softmax_crossentropy(x_in, y_in, dims)
+        outvars = crema.model.ops.ndxent(x_in, y_in, dims)
 
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
@@ -270,5 +270,5 @@ def test_conv_softmax_xent():
 
         assert np.allclose(y_pred, y_true, atol=5)
 
-    for dims in [[0], [1], [2], [0,1], [0, 2], [1, 2], [0, 1, 2]]:
+    for dims in [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]:
         yield __test, dims
