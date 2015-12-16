@@ -173,7 +173,7 @@ def logsigmoid(input_tensor, name='logsigmoid'):
     return output
 
 
-def ndxent(logits, labels, reduction_indices, name=None):
+def ndxent(logits, labels, reduction_indices, name='ndxent'):
     '''N-dimensional cross-entropy
 
     Parameters
@@ -201,7 +201,7 @@ def ndxent(logits, labels, reduction_indices, name=None):
     return output
 
 
-def expand_mask(mask, name=None):
+def expand_mask(mask, name='expand_mask'):
     '''Expand the binary mask for an observation.
 
     Parameters
