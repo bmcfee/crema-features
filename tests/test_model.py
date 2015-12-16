@@ -232,3 +232,20 @@ def test_expand_mask():
     eq_(y_pred.size, x.shape[0])
     assert np.issubdtype(y_pred.dtype, np.float)
     assert np.allclose(y_pred.squeeze(), x.astype(float))
+
+
+def test_logsigmoid():
+
+    x = np.random.randn(50, 100)
+
+    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+
+    outvars = crema.model.ops.logsigmoid(x_in)
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        y_pred = sess.run(outvars, feed_dict={x_in: x})
+
+    y_true = - np.log1p(np.exp(-x))
+
+    assert np.allclose(y_pred, y_true)
