@@ -9,6 +9,13 @@ from .base import BaseTaskTransformer
 from sklearn.preprocessing import MultiLabelBinarizer
 
 
+def _pad_nochord(target, axis=-1):
+
+    ncmask = 1 - np.sum(target, axis=axis, keepdims=True)
+
+    return np.concatenate([target, ncmask], axis=axis)
+
+
 class ChordTransformer(BaseTaskTransformer):
 
     def __init__(self, sr, hop_length):
@@ -23,6 +30,7 @@ class ChordTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([pitches])
         self._classes = set(self.encoder.classes_)
+
 
     def transform(self, jam):
 
@@ -69,6 +77,6 @@ class ChordTransformer(BaseTaskTransformer):
                                             intervals, bass)
 
         return {'output_pitches': target_pitch,
-                'output_root': target_root,
-                'output_bass': target_bass,
+                'output_root': _pad_nochord(target_root),
+                'output_bass': _pad_nochord(target_bass),
                 'mask_chord': mask}

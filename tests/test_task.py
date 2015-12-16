@@ -13,13 +13,14 @@ from nose.tools import eq_, raises
 def test_task_chord_present():
 
     # Construct a jam
-    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+    jam = jams.JAMS(file_metadata=dict(duration=5.0))
 
     ann = jams.Annotation(namespace='chord')
 
     ann.append(time=0, duration=1.0, value='C:maj')
     ann.append(time=1, duration=1.0, value='C:maj/3')
     ann.append(time=3, duration=1.0, value='D:maj')
+    ann.append(time=4, duration=1.0, value='N')
 
     jam.annotations.append(ann)
 
@@ -32,23 +33,26 @@ def test_task_chord_present():
     eq_(output['mask_chord'], True)
 
     # Ideal vectors:
-    # pcp = Cmaj, Cmaj, N, Dmaj
-    # root: C, C, N, D
-    # bass: C, E, N, D
+    # pcp = Cmaj, Cmaj, N, Dmaj, N
+    # root: C, C, N, D, N
+    # bass: C, E, N, D, N
     pcp_true = np.asarray([[1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
                            [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0]])
+                           [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
-    root_true = np.asarray([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+    root_true = np.asarray([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
 
-    bass_true = np.asarray([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+    bass_true = np.asarray([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
 
     assert np.allclose(output['output_pitches'], pcp_true)
     assert np.allclose(output['output_root'], root_true)
@@ -67,13 +71,15 @@ def test_task_chord_absent():
 
     # Check the shape
     assert np.allclose(output['output_pitches'].shape, [4, 12])
-    assert np.allclose(output['output_root'].shape, [4, 12])
-    assert np.allclose(output['output_bass'].shape, [4, 12])
+    assert np.allclose(output['output_root'].shape, [4, 13])
+    assert np.allclose(output['output_bass'].shape, [4, 13])
 
     # Make sure it's empty
     assert not np.any(output['output_pitches'])
-    assert not np.any(output['output_root'])
-    assert not np.any(output['output_bass'])
+    assert not np.any(output['output_root'][:, :12])
+    assert not np.any(output['output_bass'][:, :12])
+    assert np.all(output['output_root'][:, 12])
+    assert np.all(output['output_bass'][:, 12])
 
 
 def test_task_tslabel_present():

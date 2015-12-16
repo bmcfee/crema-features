@@ -59,7 +59,11 @@ class CremaInput(object):
                              bins_per_octave=12 * self.over_sample,
                              fmin=self.fmin).astype(self.dtype)
 
-        # Trim to the target number of frames
+        # Max-normalize
+        z = cqspec.max()
+        if z >= 1e-10:
+            cqspec /= z
+
         return cqspec[:, :n_frames]
 
     def _octensor(self, cqspec):
