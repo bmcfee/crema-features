@@ -8,15 +8,16 @@ import scipy.stats
 import tensorflow as tf
 from nose.tools import eq_
 
+from test_layers import new_graph
 import crema
 
 
-tf.set_random_seed(12345)
 
 def test_gmean():
 
     x = np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
+    @new_graph
     def __test(axis, keep_dims):
         y_true = scipy.stats.gmean(x, axis=axis)
 
@@ -53,6 +54,7 @@ def test_ndsoftmax():
 
     x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
+    @new_graph
     def __test(axis):
 
         y_true = __softmax(x, axis)
@@ -86,6 +88,7 @@ def __whiten(x):
     return z
 
 
+@new_graph
 def test_whiten():
     x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32) + 30
 
@@ -113,6 +116,7 @@ def __gain(x, default):
     return np.log1p(x * w_mag) / np.log1p(w_mag)
 
 
+@new_graph
 def test_gain():
     x = 100 * np.abs(np.random.randn(16, 96, 36, 8), dtype=np.float32) + 30
 
@@ -132,6 +136,7 @@ def test_gain():
 
 def test_he_std():
 
+    @new_graph
     def __test(shape, sym, target):
 
         pred = crema.model.init.he_std(shape, sym)
@@ -147,6 +152,7 @@ def test_he_std():
     yield __test, [3, 5, 2, 10], False, np.sqrt(2) * np.power(3 * 5 * 2, -0.5)
 
 
+@new_graph
 def test_constant():
 
     value = 3.0
@@ -163,8 +169,8 @@ def test_constant():
 
 
 def test_he_normal():
-    tf.set_random_seed(12345)
 
+    @new_graph
     def __test(shape, sym):
         w = crema.model.init.he_normal(shape, sym=sym)
 
@@ -191,8 +197,7 @@ def test_he_normal():
 
 def test_he_uniform():
 
-    tf.set_random_seed(12345)
-
+    @new_graph
     def __test(shape, sym):
         w = crema.model.init.he_uniform(shape, sym=sym)
 
@@ -217,6 +222,7 @@ def test_he_uniform():
                 yield __test, (n_w, n_w, n_c, 1000), sym
 
 
+@new_graph
 def test_expand_mask():
 
     x = np.random.randn(100) > 0.0
@@ -236,6 +242,7 @@ def test_expand_mask():
     assert np.allclose(y_pred.squeeze(), x.astype(float))
 
 
+@new_graph
 def test_logsigmoid():
 
     x = np.random.randn(50, 100)
@@ -258,6 +265,7 @@ def test_ndsoftmax_xent():
     x = np.random.randn(50, 100, 30)
     y = (np.random.randn(*x.shape) > 0).astype(np.float)
 
+    @new_graph
     def __test(dims):
         x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
         y_in = tf.placeholder(tf.float32, shape=x.shape, name='y')

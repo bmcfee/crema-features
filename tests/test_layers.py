@@ -6,56 +6,60 @@ import numpy as np
 import scipy
 import scipy.stats
 import tensorflow as tf
+from decorator import decorator
 from nose.tools import eq_
 
 import crema
 
+@decorator
+def new_graph(f, *args, **kwargs):
+    tf.set_random_seed(1234)
+    g = tf.Graph()
+    with g.as_default():
+        return f(*args, **kwargs)
 
-tf.set_random_seed(12345)
 
 def test_conv2_layer():
 
+    @new_graph
     def __test(shape, n_filters, nl, strides, mode, squeeze, reg):
         # Our input batch
-        g = tf.Graph()
-        with g.as_default():
-            x = np.random.randn(20, 5, 5, 7)
+        x = np.random.randn(20, 5, 5, 7)
 
-            x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
-            output = crema.model.layers.conv2_layer(x_in, shape, n_filters,
-                                                    nonlinearity=nl,
-                                                    strides=strides,
-                                                    mode=mode,
-                                                    squeeze_dims=squeeze,
-                                                    reg=reg)
+        output = crema.model.layers.conv2_layer(x_in, shape, n_filters,
+                                                nonlinearity=nl,
+                                                strides=strides,
+                                                mode=mode,
+                                                squeeze_dims=squeeze,
+                                                reg=reg)
 
-            with tf.Session() as sess:
-                sess.run(tf.initialize_all_variables())
-                y = sess.run(output, feed_dict={x_in: x})
+        with tf.Session() as sess:
+            sess.run(tf.initialize_all_variables())
+            y = sess.run(output, feed_dict={x_in: x})
 
+        s1, s2 = x.shape[1:3]
 
-            s1, s2 = x.shape[1:3]
+        if mode == 'VALID':
+            s1 = s1 - shape[0] + 1
+            s2 = s2 - shape[1] + 1
 
-            if mode == 'VALID':
-                s1 = s1 - shape[0] + 1
-                s2 = s2 - shape[1] + 1
+        if strides is not None:
+            s1 = s1 // strides[0] + (s1 % strides[0])
+            s2 = s2 // strides[1] + (s2 % strides[1])
 
-            if strides is not None:
-                s1 = s1 // strides[0] + (s1 % strides[0])
-                s2 = s2 // strides[1] + (s2 % strides[1])
+        target_shape = [x.shape[0], s1, s2, n_filters]
 
-            target_shape = [x.shape[0], s1, s2, n_filters]
+        if squeeze is not None:
+            target_shape = [target_shape[_] for _ in range(4) if _ not in squeeze]
 
-            if squeeze is not None:
-                target_shape = [target_shape[_] for _ in range(4) if _ not in squeeze]
+        eq_(y.shape, tuple(target_shape))
 
-            eq_(y.shape, tuple(target_shape))
-
-            if reg:
-                eq_(len(tf.get_collection('penalty')), 1)
-            else:
-                eq_(len(tf.get_collection('penalty')), 0)
+        if reg:
+            eq_(len(tf.get_collection('penalty')), 1)
+        else:
+            eq_(len(tf.get_collection('penalty')), 0)
 
 
     # And a couple of squeeze tests
@@ -70,7 +74,9 @@ def test_conv2_layer():
                         for reg in [False, True]:
                             yield __test, shape, n_filters, nl, strides, mode, None, reg
 
+@new_graph
 def test_conv2_multilabel():
+
     x = np.random.randn(20, 5, 5, 7)
 
     x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
@@ -85,6 +91,7 @@ def test_conv2_multilabel():
 
     assert np.all(y >= 0) and np.all(y <= 1.0)
 
+@new_graph
 def test_conv2_softmax():
     x = np.random.randn(10, 5, 1, 3)
 
