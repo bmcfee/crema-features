@@ -51,8 +51,8 @@ def test_conv2_layer():
         eq_(y.shape, tuple(target_shape))
 
     # And a couple of squeeze tests
-    yield __test, [5, 1], 3, tf.nn.relu, None, 'VALID', [1]
-    yield __test, [1, 5], 3, tf.nn.relu, None, 'VALID', [2]
+    yield __test, [5, 1], 3, tf.nn.relu, None, 'VALID', [1], False
+    yield __test, [1, 5], 3, tf.nn.relu, None, 'VALID', [2], False
 
     for shape in [[1,3], [3, 3], [5, 1]]:
         for n_filters in [1, 2, 3]:
