@@ -13,6 +13,7 @@ def conv2_layer(input_tensor, shape, n_filters,
                 strides=None,
                 mode='SAME',
                 squeeze_dims=None,
+                reg=False,
                 nl_kwargs=None):
     '''A 2-dimensional convolution layer.
 
@@ -41,6 +42,9 @@ def conv2_layer(input_tensor, shape, n_filters,
 
     squeeze_dims : None or tuple of int
         If provided, the specified dimensions will be squeezed
+
+    reg : bool
+        If true, apply l2 regularization to the weights in this layer
 
     nl_kwargs : dict
         If provided, additional keyword arguments to the nonlinearity
@@ -84,10 +88,15 @@ def conv2_layer(input_tensor, shape, n_filters,
         else:
             output = tf.squeeze(activation, squeeze_dims=squeeze_dims, name='activation')
 
+        if reg:
+            penalty = tf.reduce_sum(tf.square(weight), name='l2_penalty')
+            tf.add_to_collection('penalty', penalty)
+
     return output
 
 
-def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode='SAME'):
+def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode='SAME',
+                     reg=True):
     '''Convolutional multi-label output.
 
     This is useful for doing time-varying multi-label predictions.
@@ -109,6 +118,9 @@ def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode
     mode : str
         convolution mode 'SAME' or 'VALID'
 
+    reg : bool
+        If true, apply l2 regularization to the weights in this layer
+
     Returns
     -------
     logits : tf.Operator
@@ -123,10 +135,11 @@ def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode
                        name=name,
                        mode=mode,
                        nonlinearity=ops.logsigmoid,
-                       squeeze_dims=squeeze_dims)
+                       squeeze_dims=squeeze_dims,
+                       reg=reg)
 
 
-def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME'):
+def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=True):
     '''Convolutional multi-class output.
 
     This is useful for doing time-varying multi-class predictions.
@@ -148,6 +161,9 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME'):
     mode : str
         convolution mode 'SAME' or 'VALID'
 
+    reg : bool
+        If true, apply l2 regularization to the weights in this layer
+
     Returns
     -------
     logits : tf.Operator
@@ -164,4 +180,5 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME'):
                        mode=mode,
                        nonlinearity=ops.ndsoftmax,
                        nl_kwargs=dict(reduction_indices=[2, 3]),
-                       squeeze_dims=squeeze_dims)
+                       squeeze_dims=squeeze_dims,
+                       reg=reg)
