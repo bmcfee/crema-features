@@ -99,10 +99,11 @@ def whiten(input_tensor, s_min=1e-5, name=None):
 
         centered = input_tensor - mean
 
-        istd = tf.rsqrt(tf.reduce_mean(tf.square(centered),
-                                       reduction_indices=reduction_idx,
-                                       keep_dims=True))
-        zscored = tf.mul(centered, tf.minimum(1./s_min, istd), name='activation')
+        istd = tf.rsqrt(tf.maximum(s_min**2,
+                                   tf.reduce_mean(tf.square(centered),
+                                                  reduction_indices=reduction_idx,
+                                                  keep_dims=True)))
+        zscored = tf.mul(centered, istd, name='activation')
 
     return zscored
 
