@@ -17,38 +17,46 @@ def test_conv2_layer():
 
     def __test(shape, n_filters, nl, strides, mode, squeeze, reg):
         # Our input batch
-        x = np.random.randn(20, 5, 5, 7)
+        g = tf.Graph()
+        with g.as_default():
+            x = np.random.randn(20, 5, 5, 7)
 
-        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+            x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
-        output = crema.model.layers.conv2_layer(x_in, shape, n_filters,
-                                                nonlinearity=nl,
-                                                strides=strides,
-                                                mode=mode,
-                                                squeeze_dims=squeeze,
-                                                reg=reg)
+            output = crema.model.layers.conv2_layer(x_in, shape, n_filters,
+                                                    nonlinearity=nl,
+                                                    strides=strides,
+                                                    mode=mode,
+                                                    squeeze_dims=squeeze,
+                                                    reg=reg)
 
-        with tf.Session() as sess:
-            sess.run(tf.initialize_all_variables())
-            y = sess.run(output, feed_dict={x_in: x})
+            with tf.Session() as sess:
+                sess.run(tf.initialize_all_variables())
+                y = sess.run(output, feed_dict={x_in: x})
 
 
-        s1, s2 = x.shape[1:3]
+            s1, s2 = x.shape[1:3]
 
-        if mode == 'VALID':
-            s1 = s1 - shape[0] + 1
-            s2 = s2 - shape[1] + 1
+            if mode == 'VALID':
+                s1 = s1 - shape[0] + 1
+                s2 = s2 - shape[1] + 1
 
-        if strides is not None:
-            s1 = s1 // strides[0] + (s1 % strides[0])
-            s2 = s2 // strides[1] + (s2 % strides[1])
+            if strides is not None:
+                s1 = s1 // strides[0] + (s1 % strides[0])
+                s2 = s2 // strides[1] + (s2 % strides[1])
 
-        target_shape = [x.shape[0], s1, s2, n_filters]
+            target_shape = [x.shape[0], s1, s2, n_filters]
 
-        if squeeze is not None:
-            target_shape = [target_shape[_] for _ in range(4) if _ not in squeeze]
+            if squeeze is not None:
+                target_shape = [target_shape[_] for _ in range(4) if _ not in squeeze]
 
-        eq_(y.shape, tuple(target_shape))
+            eq_(y.shape, tuple(target_shape))
+
+            if reg:
+                eq_(len(tf.get_collection('penalty')), 1)
+            else:
+                eq_(len(tf.get_collection('penalty')), 0)
+
 
     # And a couple of squeeze tests
     yield __test, [5, 1], 3, tf.nn.relu, None, 'VALID', [1], False
@@ -56,7 +64,7 @@ def test_conv2_layer():
 
     for shape in [[1,3], [3, 3], [5, 1]]:
         for n_filters in [1, 2, 3]:
-            for nl in [tf.nn.relu, tf.nn.relu6, tf.nn.tanh, None]:
+            for nl in [tf.nn.relu, tf.nn.relu6, None]:
                 for strides in [None, [min(min(shape), 2), min(min(shape), 2)]]:
                     for mode in ['SAME', 'VALID']:
                         for reg in [False, True]:
