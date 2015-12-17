@@ -69,7 +69,7 @@ def ndsoftmax(input_tensor, reduction_indices):
     return logits
 
 
-def whiten(input_tensor, s_min=1e-10, name=None):
+def whiten(input_tensor, s_min=1e-5, name=None):
     '''Per-sample whitening:
         input_tensor[i] -> zscore(input_tensor[i])
 
@@ -99,11 +99,10 @@ def whiten(input_tensor, s_min=1e-10, name=None):
 
         centered = input_tensor - mean
 
-        std = tf.pow(tf.reduce_mean(tf.pow(centered, 2),
-                                    reduction_indices=reduction_idx,
-                                    keep_dims=True),
-                     0.5)
-        zscored = tf.div(centered, tf.maximum(s_min, std), name='activation')
+        istd = tf.rsqrt(tf.reduce_mean(tf.square(centered),
+                                       reduction_indices=reduction_idx,
+                                       keep_dims=True))
+        zscored = tf.mul(centered, tf.maximum(s_min, istd), name='activation')
 
     return zscored
 
