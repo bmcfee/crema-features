@@ -212,7 +212,7 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cac
         yield slice_data(data, slice(start, start + n_duration))
 
 
-def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=32, cache=None):
+def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16, n_alive=32, cache=None):
     '''Create a crema data stream
 
     Parameters
@@ -223,8 +223,8 @@ def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=3
     task_map : iterable of crema.task.BaseTaskTransformers
         Objects to transform jams annotations into crema targets
 
-    cqt : crema.pre.CQT
-        The CQT feature extraction object
+    crema_input : crema.pre.CremaInput
+        The feature extraction object
 
     n_per_track : int > 0
         The number of example patches to generate from each source file
@@ -244,7 +244,7 @@ def create_stream(sources, tasks, cqt, n_per_track=128, n_duration=16, n_alive=3
         A multiplexing stream object over the sources
     '''
     # Create the seed bank
-    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, cqt, n_per_track, n_duration, cache=cache)
+    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, crema_input, n_per_track, n_duration, cache=cache)
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
