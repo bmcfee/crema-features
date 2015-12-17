@@ -89,7 +89,7 @@ def conv2_layer(input_tensor, shape, n_filters,
             output = tf.squeeze(activation, squeeze_dims=squeeze_dims, name='activation')
 
         if reg:
-            penalty = tf.reduce_sum(weight**2, name='l2_penalty')
+            penalty = tf.reduce_sum(tf.square(weight), name='l2_penalty')
             tf.add_to_collection('penalty', penalty)
 
     return output
