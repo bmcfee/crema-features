@@ -14,6 +14,7 @@ import crema
 @decorator
 def new_graph(f, *args, **kwargs):
     tf.set_random_seed(1234)
+    np.random.seed(1234)
     g = tf.Graph()
     with g.as_default():
         return f(*args, **kwargs)

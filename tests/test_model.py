@@ -15,13 +15,13 @@ import crema
 
 def test_gmean():
 
-    x = np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
     @new_graph
     def __test(axis, keep_dims):
+        x = np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
         y_true = scipy.stats.gmean(x, axis=axis)
 
-        x_in = tf.placeholder(tf.float32, shape=(5, 5, 5), name='x')
+        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
         outvar = crema.model.ops.reduce_gmean(x_in, reduction_indices=[axis],
                                                 keep_dims=keep_dims)
@@ -52,14 +52,14 @@ def __softmax(x, axes):
 
 def test_ndsoftmax():
 
-    x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
 
     @new_graph
     def __test(axis):
 
+        x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32)
         y_true = __softmax(x, axis)
 
-        x_in = tf.placeholder(tf.float32, shape=(5, 5, 5), name='x')
+        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
         outvars = crema.model.ops.ndsoftmax(x_in, reduction_indices=axis)
 
@@ -262,11 +262,11 @@ def test_logsigmoid():
 
 def test_ndsoftmax_xent():
 
-    x = np.random.randn(50, 100, 30)
-    y = (np.random.randn(*x.shape) > 0).astype(np.float)
 
     @new_graph
     def __test(dims):
+        x = np.random.randn(50, 100, 30)
+        y = (np.random.randn(*x.shape) > 0).astype(np.float)
         x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
         y_in = tf.placeholder(tf.float32, shape=x.shape, name='y')
 
