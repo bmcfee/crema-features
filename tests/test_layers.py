@@ -15,7 +15,7 @@ tf.set_random_seed(12345)
 
 def test_conv2_layer():
 
-    def __test(shape, n_filters, nl, strides, mode, squeeze):
+    def __test(shape, n_filters, nl, strides, mode, squeeze, reg):
         # Our input batch
         x = np.random.randn(20, 5, 5, 7)
 
@@ -25,7 +25,8 @@ def test_conv2_layer():
                                                 nonlinearity=nl,
                                                 strides=strides,
                                                 mode=mode,
-                                                squeeze_dims=squeeze)
+                                                squeeze_dims=squeeze,
+                                                reg=reg)
 
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
@@ -58,7 +59,8 @@ def test_conv2_layer():
             for nl in [tf.nn.relu, tf.nn.relu6, tf.nn.tanh, None]:
                 for strides in [None, [min(min(shape), 2), min(min(shape), 2)]]:
                     for mode in ['SAME', 'VALID']:
-                        yield __test, shape, n_filters, nl, strides, mode, None
+                        for reg in [False, True]:
+                            yield __test, shape, n_filters, nl, strides, mode, None, reg
 
 def test_conv2_multilabel():
     x = np.random.randn(20, 5, 5, 7)
