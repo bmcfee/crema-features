@@ -44,13 +44,14 @@ def index_data(source_dir, output_file, key_file):
     assert len(audio_files) == len(ann_files), len(ann_files)
     assert len(audio_files) == len(keys), len(keys)
 
-    df = pd.DataFrame(columns=['audio', 'jams', 'key'])
+    frame = pd.DataFrame(columns=['audio', 'jams', 'key', 'original'])
 
-    df['audio'] = audio_files
-    df['jams'] = ann_files
-    df['key'] = [index_track(fname, keys) for fname in audio_files]
+    frame['audio'] = audio_files
+    frame['jams'] = ann_files
+    frame['key'] = [index_track(fname, keys) for fname in audio_files]
+    frame['original'] = True
 
-    df.to_csv(output_file, index=False)
+    frame.to_csv(output_file, index=False)
 
 
 if __name__ == '__main__':
