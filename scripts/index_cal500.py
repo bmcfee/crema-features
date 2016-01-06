@@ -5,7 +5,6 @@ import os
 import sys
 import pandas as pd
 import jams
-import json
 
 
 def process_args(args):
@@ -44,16 +43,17 @@ def index_data(source_dir, output_file, aud_ext, jams_ext, split_ext):
     audio_files = jams.util.find_with_extension(source_dir, aud_ext, depth=5)
     ann_files = jams.util.find_with_extension(source_dir, jams_ext, depth=5)
 
-    df = pd.DataFrame(columns=['audio', 'jams', 'key'])
+    frame = pd.DataFrame(columns=['audio', 'jams', 'key', 'original'])
 
     audio_index = index_audio(audio_files, split_ext)
     keys = [jam_to_audio(jf) for jf in ann_files]
 
-    df['audio'] = [audio_index[k] for k in keys]
-    df['jams'] = ann_files
-    df['key'] = keys
+    frame['audio'] = [audio_index[k] for k in keys]
+    frame['jams'] = ann_files
+    frame['key'] = keys
+    frame['original'] = True
 
-    df.to_csv(output_file, index=False)
+    frame.to_csv(output_file, index=False)
 
 
 if __name__ == '__main__':
