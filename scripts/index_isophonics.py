@@ -5,7 +5,7 @@ import os
 import sys
 import pandas as pd
 import jams
-
+from tqdm import tqdm
 
 def process_args(args):
     '''Parse arguments'''
@@ -30,7 +30,7 @@ def index_data(source_dir, output_file):
     frame['audio'] = audio_files
     frame['jams'] = ann_files
     frame['key'] = [os.path.relpath(os.path.dirname(fname), source_dir) 
-                 for fname in audio_files]
+                 for fname in tqdm(audio_files, desc='Indexing audio')]
     frame['original'] = True
 
     frame.to_csv(output_file, index=False)

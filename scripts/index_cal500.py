@@ -5,6 +5,7 @@ import os
 import sys
 import pandas as pd
 import jams
+from tqdm import tqdm
 
 
 def process_args(args):
@@ -46,7 +47,7 @@ def index_data(source_dir, output_file, aud_ext, jams_ext, split_ext):
     frame = pd.DataFrame(columns=['audio', 'jams', 'key', 'original'])
 
     audio_index = index_audio(audio_files, split_ext)
-    keys = [jam_to_audio(jf) for jf in ann_files]
+    keys = [jam_to_audio(jf) for jf in tqdm(ann_files, desc='Indexing jams')]
 
     frame['audio'] = [audio_index[k] for k in keys]
     frame['jams'] = ann_files
