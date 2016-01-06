@@ -25,14 +25,15 @@ def index_data(source_dir, output_file):
 
     assert len(audio_files) == len(ann_files), len(audio_files)
 
-    df = pd.DataFrame(columns=['audio', 'jams', 'key'])
+    frame = pd.DataFrame(columns=['audio', 'jams', 'key', 'original'])
 
-    df['audio'] = audio_files
-    df['jams'] = ann_files
-    df['key'] = [os.path.relpath(os.path.dirname(fname), source_dir) 
+    frame['audio'] = audio_files
+    frame['jams'] = ann_files
+    frame['key'] = [os.path.relpath(os.path.dirname(fname), source_dir) 
                  for fname in audio_files]
+    frame['original'] = True
 
-    df.to_csv(output_file, index=False)
+    frame.to_csv(output_file, index=False)
 
 
 if __name__ == '__main__':
