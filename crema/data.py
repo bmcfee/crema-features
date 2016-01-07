@@ -272,6 +272,7 @@ def mux_streams(streams, n_samples, n_batch=64):
         the merged input streams
     '''
     # Mux all incoming streams
-    stream_mux = pescador.Streamer(pescador.mux, streams, n_samples, len(streams))
+    stream_mux = pescador.Streamer(pescador.mux, streams, n_samples, len(streams),
+                                   lam=None)
 
     return pescador.Streamer(pescador.buffer_streamer, stream_mux, n_batch)
