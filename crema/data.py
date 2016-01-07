@@ -212,7 +212,8 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cac
         yield slice_data(data, slice(start, start + n_duration))
 
 
-def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16, n_alive=32, cache=None):
+def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
+                  n_alive=32, cache=None, keys=None):
     '''Create a crema data stream
 
     Parameters
@@ -238,13 +239,23 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16, n
     cache : Shove or None
         feature cache object
 
+    keys : iterable or None
+        If given, only elements of `sources` belonging to `keys` will be
+        processed
+
     Returns
     -------
     mux : pescador.Streamer
         A multiplexing stream object over the sources
     '''
+
+    # If we have keys, filter down to th
+    if keys:
+        sources = sources[sources['key'].isin(keys)]
+
     # Create the seed bank
-    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, crema_input, n_per_track, n_duration, cache=cache)
+    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, crema_input,
+                               n_per_track, n_duration, cache=cache)
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
