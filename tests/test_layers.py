@@ -20,6 +20,40 @@ def new_graph(f, *args, **kwargs):
         return f(*args, **kwargs)
 
 
+def test_dense():
+
+    @new_graph
+    def __test(n_filters, nl, reg):
+        # Our input batch
+        x = np.random.randn(20, 64)
+
+        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+
+        output = crema.model.layers.dense_layer(x_in, n_filters,
+                                                nonlinearity=nl,
+                                                reg=reg)
+
+        with tf.Session() as sess:
+            sess.run(tf.initialize_all_variables())
+            y = sess.run(output, feed_dict={x_in: x})
+
+        target_shape = [x.shape[0], n_filters]
+
+        eq_(y.shape, tuple(target_shape))
+
+        if reg:
+            eq_(len(tf.get_collection('penalty')), 1)
+        else:
+            eq_(len(tf.get_collection('penalty')), 0)
+
+
+    # And a couple of squeeze tests
+    for n_filters in [1, 2, 3]:
+        for nl in [tf.nn.relu, tf.nn.relu6, None]:
+            for reg in [False, True]:
+                yield __test, n_filters, nl, reg
+
+
 def test_conv2_layer():
 
     @new_graph
