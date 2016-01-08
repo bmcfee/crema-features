@@ -34,14 +34,14 @@ class ChordTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        anns = jam.search(namespace=self.namespace)
+        ann = self.find_annotation(jam)
 
         # Construct a blank annotation with mask = 0
         intervals = np.asarray([[0.0, jam.file_metadata.duration]])
         chords = ['N']
         mask = False
-        if anns:
-            ann_ints, ann_chords = anns[0].data.to_interval_values()
+        if ann:
+            ann_ints, ann_chords = ann.data.to_interval_values()
             intervals = np.vstack([intervals, ann_ints])
             chords.extend(ann_chords)
             mask = True

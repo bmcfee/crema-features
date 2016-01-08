@@ -18,10 +18,10 @@ class VectorTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        anns = jam.search(namespace=self.namespace)
+        ann = self.find_annotation(jam)
 
-        if anns:
-            vector = np.asarray(anns[0].data.value.iloc[0])
+        if ann:
+            vector = np.asarray(ann.data.value.iloc[0])
             if len(vector) != self.dimension:
                 raise RuntimeError('vector dimension({:0}) '
                                    '!= self.dimension({:1})'
