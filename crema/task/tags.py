@@ -53,14 +53,14 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        anns = jam.search(namespace=self.namespace)
+        ann = self.find_annotation(jam)
 
         intervals = np.asarray([[0.0, jam.file_metadata.duration]])
         values = [None]
         mask = False
 
-        if anns:
-            ann_int, ann_val = anns[0].data.to_interval_values()
+        if ann:
+            ann_int, ann_val = ann.data.to_interval_values()
             intervals = np.vstack([intervals, ann_int])
             values.extend(ann_val)
             mask = True
@@ -101,14 +101,14 @@ class GlobalLabelTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        anns = jam.search(namespace=self.namespace)
+        ann = self.find_annotation(jam)
 
         intervals = np.asarray([[0, 1]])
         values = [None]
         mask = False
 
-        if anns:
-            values = list(anns[0].data.value)
+        if ann:
+            values = list(ann.data.value)
             intervals = np.tile(intervals, [len(values), 1])
             mask = True
 

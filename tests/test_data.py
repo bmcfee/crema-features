@@ -7,7 +7,10 @@ import numpy as np
 
 from nose.tools import eq_, raises
 
+import pandas as pd
+
 import crema
+import crema.data
 
 TEST_FILE = 'data/test1_44100.wav'
 TEST_JAMS = 'data/test1_44100.jams'
@@ -126,8 +129,72 @@ def test_data_cache():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
-    crema.data.init_cache('simple://')
+    cache = crema.data.init_cache('simple://')
 
-    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
+    data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
+    data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
 
     assert np.all(data['input_cqt'] == data2['input_cqt'])
+    assert np.all(data2['input_cqt'] == data3['input_cqt'])
+
+
+def test_create_stream():
+
+    sources = pd.read_csv('data/test_index.csv')
+
+    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
+                                         crema.dsp.librosa['hop_length'])]
+
+    crema_input = crema.pre.CremaInput()
+
+    def __test(n_duration, keys):
+        streamer = crema.data.create_stream(sources, tasks, crema_input,
+                                            n_duration=n_duration, keys=keys)
+
+        # Bound the stream to 10 examples, otherwise we'll run forever
+        for sample, _ in zip(streamer.generate(), range(10)):
+            eq_(sample['input_cqt'].shape[1], n_duration)
+
+    for n_duration in [1, 8, 16]:
+        for keys in [None, [1]]:
+            yield __test, n_duration, keys
+
+    # And test for an exception if we give a bogus key
+    yield raises(RuntimeError)(__test), 8, ['bogus key']
+
+
+def test_mux_streams():
+    sources = pd.read_csv('data/test_index.csv')
+
+    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
+                                         crema.dsp.librosa['hop_length'])]
+
+    crema_input = crema.pre.CremaInput()
+
+
+    streams = [crema.data.create_stream(sources, tasks, crema_input, n_duration=8) 
+               for _ in range(3)]
+
+    def __test(n_samples, n_batch):
+
+        mux = crema.data.mux_streams(streams, n_samples, n_batch)
+
+        for n, batch in enumerate(mux.generate()):
+            for key in batch:
+                eq_(batch[key].shape[0], n_batch)
+
+        eq_(n+1, n_samples//min(n_samples, n_batch))
+
+    for n_samples in [10, 20, 40]:
+        for n_batch in [5, 10]:
+            yield __test, n_samples, n_batch
+
+
+def test_split():
+    
+    sources = pd.read_csv('data/test_index2.csv')
+
+    all_keys = set(sources['key'])
+    for train, test in crema.data.split(sources, random_state=0):
+        eq_(all_keys, train | test)
+        assert not train & test

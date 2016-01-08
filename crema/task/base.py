@@ -19,6 +19,15 @@ class BaseTaskTransformer(object):
 
         self.fill_na = fill_na
 
+    def find_annotation(self, jam):
+        anns = jam.search(namespace=self.namespace)
+
+        if anns:
+            i = np.random.choice(len(anns))
+            return anns[i]
+
+        return None
+
     def encode_events(self, duration, events, values):
 
         frames = librosa.time_to_frames(events,

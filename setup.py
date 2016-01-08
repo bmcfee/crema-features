@@ -35,7 +35,7 @@ setup(
         'scipy',
         'scikit-learn>=0.17',
         'pandas>=0.17',
-        'pescador>=0.1',
+        'pescador>=0.1.1',
         'librosa>=0.4.1',
         'jams>=0.2.1',
         'presets>=0.1',

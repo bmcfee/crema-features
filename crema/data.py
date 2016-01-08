@@ -4,11 +4,10 @@
 import numpy as np
 import six
 import jams
+import pescador
 import shove
 
-# A global feature cache object
-__CACHE = None
-
+from sklearn.cross_validation import LabelShuffleSplit
 
 def init_cache(uri):
     '''Instantiate a feature cache with shove`
@@ -19,12 +18,10 @@ def init_cache(uri):
         See shove.Shove() for details
     '''
 
-    global __CACHE
-    __CACHE = shove.Shove(uri)
-    pass
+    return shove.Shove(uri)
 
 
-def jams_mapping(jams_in, task_map):
+def jams_mapping(jams_in, task_map, validate=False):
     '''Convert jams annotations to crema outputs.
 
     Given a jams file and a collection of TaskTransformers,
@@ -42,13 +39,16 @@ def jams_mapping(jams_in, task_map):
     task_map: iterable of BaseTaskTransformers
         The task transformation objects to apply
 
+    validate : bool
+        Validate data on load
+
     Returns
     -------
     output : dict
         All task transformer outputs, collected in one dictionary
         and reshaped.
     '''
-    jam = jams.load(jams_in)
+    jam = jams.load(jams_in, validate=validate)
 
     output = {}
     for task in task_map:
@@ -126,7 +126,7 @@ def data_duration(data):
     return int(n)
 
 
-def make_task_data(audio_in, jams_in, task_map, crema_input):
+def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     '''Construct a full-length data point
 
     Parameters
@@ -143,6 +143,8 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     crema_input : crema.pre.CremaInput
         The input feature extraction object
 
+    cache : Shove or None
+        A cache object for pre-computed input features
 
     Returns
     -------
@@ -157,12 +159,12 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     data = jams_mapping(jams_in, task_map)
 
     # Load the audio data
-    if __CACHE is not None:
-        if audio_in not in __CACHE:
-            __CACHE[audio_in] = crema_input.extract(audio_in)
-            __CACHE.sync()
+    if cache is not None:
+        if audio_in not in cache:
+            cache[audio_in] = crema_input.extract(audio_in)
+            cache.sync()
 
-        features = __CACHE[audio_in]
+        features = cache[audio_in]
     else:
         features = crema_input.extract(audio_in)
 
@@ -172,7 +174,7 @@ def make_task_data(audio_in, jams_in, task_map, crema_input):
     return data
 
 
-def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
+def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cache=None):
     '''Construct sample data for learning
 
     Parameters
@@ -195,13 +197,16 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
     n_duration : int > 0
         The duration (in frames) for each patch
 
+    cache : Shove or None
+        Feature cache object
+
     Generates
     ---------
     data : dict
         An example patch drawn uniformly at random from the track
     '''
 
-    data = make_task_data(audio_in, jams_in, task_map, crema_input)
+    data = make_task_data(audio_in, jams_in, task_map, crema_input, cache=cache)
 
     feature_duration = data_duration(data)
 
@@ -209,3 +214,113 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration):
         start = np.random.randint(0, feature_duration - n_duration)
 
         yield slice_data(data, slice(start, start + n_duration))
+
+
+def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
+                  n_alive=32, cache=None, keys=None):
+    '''Create a crema data stream
+
+    Parameters
+    ----------
+    sources : pd.DataFrame
+        Must contain columns `audio` and `jams`
+
+    task_map : iterable of crema.task.BaseTaskTransformers
+        Objects to transform jams annotations into crema targets
+
+    crema_input : crema.pre.CremaInput
+        The feature extraction object
+
+    n_per_track : int > 0
+        The number of example patches to generate from each source file
+
+    n_duration : int > 0
+        The duration (in frames) of each generated patch
+
+    n_alive : int > 0
+        The number of sources to keep active
+
+    cache : Shove or None
+        feature cache object
+
+    keys : iterable or None
+        If given, only elements of `sources` belonging to `keys` will be
+        processed
+
+    Returns
+    -------
+    mux : pescador.Streamer
+        A multiplexing stream object over the sources
+    '''
+
+    # If we have keys, filter down to th
+    if keys:
+        sources = sources[sources['key'].isin(keys)]
+
+    # Create the seed bank
+    seeds = [pescador.Streamer(sampler, audf, jamf, tasks, crema_input,
+                               n_per_track, n_duration, cache=cache)
+             for audf, jamf in zip(sources.audio, sources.jams)]
+
+    # Multiplex these seeds together
+    return pescador.Streamer(pescador.mux, seeds, None, n_alive)
+
+
+def mux_streams(streams, n_samples, n_batch=64):
+    '''Multiplex data source streams
+
+    Parameters
+    ----------
+    streams: list of pescador.Streamer
+        The streams to merge
+
+    n_samples : int >0 or None
+        The total number of samples to draw
+
+    n_batch : int > 0
+        The size of each batch
+
+    Returns
+    -------
+    mux : pescador.Streamer
+        A multiplexing stream object that generates batches of size n_batch from
+        the merged input streams
+    '''
+    # Mux all incoming streams
+    stream_mux = pescador.Streamer(pescador.mux, streams, n_samples, len(streams),
+                                   lam=None)
+
+    return pescador.Streamer(pescador.buffer_streamer, stream_mux, n_batch)
+
+
+def split(sources, n_iter=5, test_size=0.2, random_state=None):
+    '''Generate train-test splits from an array of sources.
+
+    Splits are conditioned on `key` fields of the data
+
+    Parameters
+    ----------
+    sources : pd.DataFrame
+        DataFrame containing the list of source data
+
+    n_iter : int > 0
+        Number of splits to generate
+
+    test_size = float > 0
+        Approximate fraction of points to land in the test set
+
+    random_state : int or RandomState
+        PRNG seed
+
+    Yields
+    ------
+    train, test : sets of keys
+        keys belonging to the train or test set respectively
+    '''
+
+    for train, test in LabelShuffleSplit(sources.key,
+                                         n_iter=n_iter,
+                                         test_size=test_size,
+                                         random_state=random_state):
+
+        yield set(sources.loc[train].key), set(sources.loc[test].key)

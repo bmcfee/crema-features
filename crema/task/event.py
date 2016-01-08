@@ -15,14 +15,14 @@ class BeatTransformer(BaseTaskTransformer):
 
     def transform(self, jam):
 
-        anns = jam.search(namespace=self.namespace)
+        ann = self.find_annotation(jam)
 
         mask_beat = False
         mask_downbeat = False
 
-        if anns:
+        if ann:
             mask_beat = True
-            intervals, values = anns[0].data.to_interval_values()
+            intervals, values = ann.data.to_interval_values()
             values = np.asarray(values)
 
             beat_events = intervals[:, 0]

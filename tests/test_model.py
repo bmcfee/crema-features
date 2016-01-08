@@ -94,7 +94,7 @@ def test_whiten():
 
     x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
-    outvars = crema.model.ops.whiten(x_in, s_min=0.0)
+    outvars = crema.model.ops.whiten(x_in, s_min=1e-10)
 
     with tf.Session() as sess:
         y_pred = sess.run(outvars, feed_dict={x_in: x})
