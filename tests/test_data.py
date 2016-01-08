@@ -189,3 +189,12 @@ def test_mux_streams():
         for n_batch in [5, 10]:
             yield __test, n_samples, n_batch
 
+
+def test_split():
+    
+    sources = pd.read_csv('data/test_index2.csv')
+
+    all_keys = set(sources['key'])
+    for train, test in crema.data.split(sources, random_state=0):
+        eq_(all_keys, train | test)
+        assert not train & test

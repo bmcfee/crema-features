@@ -7,6 +7,7 @@ import jams
 import pescador
 import shove
 
+from sklearn.cross_validation import LabelShuffleSplit
 
 def init_cache(uri):
     '''Instantiate a feature cache with shove`
@@ -290,3 +291,36 @@ def mux_streams(streams, n_samples, n_batch=64):
                                    lam=None)
 
     return pescador.Streamer(pescador.buffer_streamer, stream_mux, n_batch)
+
+
+def split(sources, n_iter=5, test_size=0.2, random_state=None):
+    '''Generate train-test splits from an array of sources.
+
+    Splits are conditioned on `key` fields of the data
+
+    Parameters
+    ----------
+    sources : pd.DataFrame
+        DataFrame containing the list of source data
+
+    n_iter : int > 0
+        Number of splits to generate
+
+    test_size = float > 0
+        Approximate fraction of points to land in the test set
+
+    random_state : int or RandomState
+        PRNG seed
+
+    Yields
+    ------
+    train, test : sets of keys
+        keys belonging to the train or test set respectively
+    '''
+
+    for train, test in LabelShuffleSplit(sources.key,
+                                         n_iter=n_iter,
+                                         test_size=test_size,
+                                         random_state=random_state):
+
+        yield set(sources.loc[train].key), set(sources.loc[test].key)
