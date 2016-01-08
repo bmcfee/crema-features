@@ -187,7 +187,7 @@ def test_he_normal():
 
         # Make sure that we're close to zero-mean
         assert np.abs(np.mean(w_out)) <= 1e-2
-        assert np.abs(np.var(w_out) - std_target**2) <= 1e-3
+        assert np.abs(np.var(w_out) - std_target**2) <= 1e-2
 
     for n_w in [3, 9, 23]:
         for n_c in [3, 7]:
@@ -214,7 +214,7 @@ def test_he_uniform():
 
         # Make sure that we're close to zero-mean
         assert np.abs(np.mean(w_out)) <= 1e-2
-        assert np.abs(np.var(w_out) - std_target**2) <= 1e-3
+        assert np.abs(np.var(w_out) - std_target**2) <= 1e-2
 
     for n_w in [3, 9, 23]:
         for n_c in [3, 7]:
