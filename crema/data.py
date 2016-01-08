@@ -20,7 +20,7 @@ def init_cache(uri):
     return shove.Shove(uri)
 
 
-def jams_mapping(jams_in, task_map):
+def jams_mapping(jams_in, task_map, validate=False):
     '''Convert jams annotations to crema outputs.
 
     Given a jams file and a collection of TaskTransformers,
@@ -38,13 +38,16 @@ def jams_mapping(jams_in, task_map):
     task_map: iterable of BaseTaskTransformers
         The task transformation objects to apply
 
+    validate : bool
+        Validate data on load
+
     Returns
     -------
     output : dict
         All task transformer outputs, collected in one dictionary
         and reshaped.
     '''
-    jam = jams.load(jams_in)
+    jam = jams.load(jams_in, validate=validate)
 
     output = {}
     for task in task_map:
