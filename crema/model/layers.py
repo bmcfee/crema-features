@@ -7,6 +7,66 @@ from . import init
 from . import ops
 
 
+def dense_layer(input_tensor, n_units, name=None, nonlinearity=tf.nn.relu,
+                reg=False, nl_kwargs=None):
+    '''A dense layer
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor, shape=(n_batch, n_input)
+        The input tensor
+
+    n_units : int
+        The number of outputs for this layer
+
+    name : str
+        A name for this layer
+
+    nonlinearity : function
+        The nonlinearity function to apply
+
+    reg : bool
+        If true, apply l2 regularization to the weights in this layer
+
+    nl_kwargs : dict
+        If provided, additional keyword arguments to the nonlinearity
+
+    Returns
+    -------
+    output : tf.Operator
+        The output node of the layer
+    '''
+
+    x_shape = input_tensor.get_shape()
+    layer_shape = [int(x_shape[-1]), n_units]
+
+    if nonlinearity is None:
+        nonlinearity = tf.identity
+
+    with tf.name_scope(name):
+        if nonlinearity in (tf.nn.relu, tf.nn.relu6):
+            sym = False
+            default_bias = init.he_std(layer_shape, sym=sym)
+        else:
+            sym = True
+            default_bias = 0
+
+        weight = init.he_uniform(layer_shape, name='weight', sym=sym)
+        bias = init.constant([n_units], name='bias', default=default_bias)
+
+        response = tf.matmul(input_tensor, weight) + bias
+
+        activation = nonlinearity(response, **(nl_kwargs if nl_kwargs else {}))
+
+        output = tf.identity(activation, name='activation')
+
+        if reg:
+            penalty = tf.reduce_sum(tf.square(weight), name='l2_penalty')
+            tf.add_to_collection('penalty', penalty)
+
+    return output
+
+
 def conv2_layer(input_tensor, shape, n_filters,
                 name=None,
                 nonlinearity=tf.nn.relu,
@@ -182,3 +242,4 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        nl_kwargs=dict(reduction_indices=[2, 3]),
                        squeeze_dims=squeeze_dims,
                        reg=reg)
+
