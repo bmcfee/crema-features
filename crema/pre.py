@@ -3,11 +3,19 @@
 '''Feature pre-processing'''
 
 import numpy as np
+from collections import namedtuple
 
 from .dsp import librosa
 
 
+Tensor = namedtuple('Tensor', ['dtype', 'width', 'height', 'channels'])
+
+
 class CremaInput(object):
+    def __init__(self):
+        raise NotImplementedError
+
+class CQTensor(CremaInput):
 
     def __init__(self, n_octaves=8, over_sample=3, n_slice=2,
                  fmin=None, dtype=np.float32):
@@ -19,9 +27,15 @@ class CremaInput(object):
             fmin = librosa.note_to_hz('C1')
 
         self.fmin = fmin
-
         self.n_slice = n_slice
         self.dtype = dtype
+
+        self.var = dict()
+
+        self.var['input_cqtensor'] = Tensor(dtype,
+                                            None,
+                                            12 * self.over_sample * self.n_slice,
+                                            self.n_octaves - 1)
 
     def extract(self, infile):
         '''Extract Constant-Q spectra from an input file'''
@@ -35,7 +49,7 @@ class CremaInput(object):
         cqspec = self._cqt(y)
 
         # Populate the feature dictionary
-        features['input_cqt'] = self._octensor(cqspec)
+        features['input_cqtensor'] = self._octensor(cqspec)
         return features
 
     def _cqt(self, y):
@@ -60,9 +74,9 @@ class CremaInput(object):
                              fmin=self.fmin).astype(self.dtype)
 
         # Max-normalize
-        z = cqspec.max()
-        if z >= 1e-10:
-            cqspec /= z
+        peak_energy = cqspec.max()
+        if peak_energy >= 1e-10:
+            cqspec /= peak_energy
 
         return cqspec[:, :n_frames]
 
@@ -100,3 +114,69 @@ class CremaInput(object):
             tensor[:, :, i] = cqspec[subband].T
 
         return tensor
+
+
+class CQFlat(CremaInput):
+
+    def __init__(self, n_octaves=8, over_sample=3, 
+                 fmin=None, dtype=np.float32):
+
+        self.n_octaves = n_octaves
+        self.over_sample = over_sample
+
+        if fmin is None:
+            fmin = librosa.note_to_hz('C1')
+
+        self.fmin = fmin
+        self.dtype = dtype
+
+        self.var = dict()
+
+        self.var['input_cqt'] = Tensor(dtype,
+                                       None,
+                                       12 * self.over_sample * self.n_octaves,
+                                       1)
+
+    def extract(self, infile):
+        '''Extract Constant-Q spectra from an input file'''
+
+        y, _ = librosa.load(infile)
+
+        # Construct the feature dictionary
+        features = dict()
+
+        # Extract the cqt spectrogram
+        cqspec = self._cqt(y)
+
+        # Populate the feature dictionary
+        features['input_cqt'] = cqspec.T[:, :, np.newaxis]
+        return features
+
+    def _cqt(self, y):
+        '''Convert an audio time series to a CQT spectrogram
+
+        Parameters
+        ----------
+        y : np.ndarray, shape=(t,)
+            Audio time series
+
+        Returns
+        -------
+        cqspec : np.ndarray, shape=(n_bins, t)
+            Constant-Q spectrogram
+        '''
+
+        n_frames = librosa.time_to_frames(librosa.get_duration(y))
+
+        cqspec = librosa.cqt(y,
+                             n_bins=12 * self.n_octaves * self.over_sample,
+                             bins_per_octave=12 * self.over_sample,
+                             fmin=self.fmin).astype(self.dtype)
+
+        # Max-normalize
+        peak_energy = cqspec.max()
+        if peak_energy >= 1e-10:
+            cqspec /= peak_energy
+
+        return cqspec[:, :n_frames]
+

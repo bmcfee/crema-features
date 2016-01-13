@@ -78,12 +78,12 @@ def test_make_data():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     feature = crema_input.extract(TEST_FILE)
-    assert np.allclose(feature['input_cqt'], data['input_cqt'][0])
+    assert np.allclose(feature['input_cqtensor'], data['input_cqtensor'][0])
 
     jam = jams.load(TEST_JAMS)
     for task in tasks:
@@ -99,7 +99,7 @@ def test_sampler():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
     all_data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     def __test(n_samples, n_duration):
@@ -125,7 +125,7 @@ def test_sampler():
 
 def test_data_cache():
     # First, get the raw features
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
@@ -134,8 +134,8 @@ def test_data_cache():
     data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
     data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
 
-    assert np.all(data['input_cqt'] == data2['input_cqt'])
-    assert np.all(data2['input_cqt'] == data3['input_cqt'])
+    assert np.all(data['input_cqtensor'] == data2['input_cqtensor'])
+    assert np.all(data2['input_cqtensor'] == data3['input_cqtensor'])
 
 
 def test_create_stream():
@@ -145,7 +145,7 @@ def test_create_stream():
     tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
                                          crema.dsp.librosa['hop_length'])]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
     def __test(n_duration, keys):
         streamer = crema.data.create_stream(sources, tasks, crema_input,
@@ -153,7 +153,7 @@ def test_create_stream():
 
         # Bound the stream to 10 examples, otherwise we'll run forever
         for sample, _ in zip(streamer.generate(), range(10)):
-            eq_(sample['input_cqt'].shape[1], n_duration)
+            eq_(sample['input_cqtensor'].shape[1], n_duration)
 
     for n_duration in [1, 8, 16]:
         for keys in [None, [1]]:
@@ -169,7 +169,7 @@ def test_mux_streams():
     tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
                                          crema.dsp.librosa['hop_length'])]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
 
     streams = [crema.data.create_stream(sources, tasks, crema_input, n_duration=8) 
