@@ -12,12 +12,29 @@ TEST_FILE = 'data/test1_44100.wav'
 
 def test_input_cqt_shape():
 
+    def __test(n_octaves, over_sample):
+        CQF = crema.pre.CQFlat(n_octaves=n_octaves,
+                                    over_sample=over_sample)
+
+        C = CQF.extract(TEST_FILE)['input_cqt']
+
+        eq_(C.shape[1], 12 * over_sample * n_octaves)
+        eq_(C.shape[2], 1)
+
+
+    for n_octaves in [3, 4, 5]:
+        for over_sample in [1, 2, 3]:
+            yield __test, n_octaves, over_sample
+
+
+def test_input_cqtensor_shape():
+
     def __test(n_octaves, over_sample, n_slice):
         CQTensor = crema.pre.CQTensor(n_octaves=n_octaves,
                                       over_sample=over_sample,
                                       n_slice=n_slice)
 
-        C = CQTensor.extract(TEST_FILE)['input_cqt']
+        C = CQTensor.extract(TEST_FILE)['input_cqtensor']
 
         eq_(C.shape[1], 12 * over_sample * n_slice)
         eq_(C.shape[2], n_octaves - n_slice + 1)
