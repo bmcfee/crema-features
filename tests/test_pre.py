@@ -14,8 +14,8 @@ def test_input_cqt_shape():
 
     def __test(n_octaves, over_sample, n_slice):
         CQTensor = crema.pre.CQTensor(n_octaves=n_octaves,
-                                          over_sample=over_sample,
-                                          n_slice=n_slice)
+                                      over_sample=over_sample,
+                                      n_slice=n_slice)
 
         C = CQTensor.extract(TEST_FILE)['input_cqt']
 

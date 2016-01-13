@@ -3,8 +3,12 @@
 '''Feature pre-processing'''
 
 import numpy as np
+from collections import namedtuple
 
 from .dsp import librosa
+
+
+Tensor = namedtuple('Tensor', ['dtype', 'width', 'height', 'channels'])
 
 
 class CremaInput(object):
@@ -23,12 +27,15 @@ class CQTensor(CremaInput):
             fmin = librosa.note_to_hz('C1')
 
         self.fmin = fmin
-
         self.n_slice = n_slice
         self.dtype = dtype
 
-        self.height = 12 * self.over_sample * self.n_slice
-        self.n_channels = self.n_octaves - 1
+        self.var = dict()
+
+        self.var['input_cqt'] = Tensor(dtype,
+                                       None,
+                                       12 * self.over_sample * self.n_slice,
+                                       self.n_octaves - 1)
 
     def extract(self, infile):
         '''Extract Constant-Q spectra from an input file'''
