@@ -8,6 +8,10 @@ from .dsp import librosa
 
 
 class CremaInput(object):
+    def __init__(self):
+        raise NotImplementedError
+
+class CQTensor(CremaInput):
 
     def __init__(self, n_octaves=8, over_sample=3, n_slice=2,
                  fmin=None, dtype=np.float32):
@@ -22,6 +26,9 @@ class CremaInput(object):
 
         self.n_slice = n_slice
         self.dtype = dtype
+
+        self.height = 12 * self.over_sample * self.n_slice
+        self.n_channels = self.n_octaves - 1
 
     def extract(self, infile):
         '''Extract Constant-Q spectra from an input file'''
@@ -60,9 +67,9 @@ class CremaInput(object):
                              fmin=self.fmin).astype(self.dtype)
 
         # Max-normalize
-        z = cqspec.max()
-        if z >= 1e-10:
-            cqspec /= z
+        peak_energy = cqspec.max()
+        if peak_energy >= 1e-10:
+            cqspec /= peak_energy
 
         return cqspec[:, :n_frames]
 

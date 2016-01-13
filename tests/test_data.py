@@ -78,7 +78,7 @@ def test_make_data():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
@@ -99,7 +99,7 @@ def test_sampler():
                                         crema.dsp.librosa['hop_length']),
              crema.task.VectorTransformer('vector', 64)]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
     all_data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, tasks, crema_input)
 
     def __test(n_samples, n_duration):
@@ -125,7 +125,7 @@ def test_sampler():
 
 def test_data_cache():
     # First, get the raw features
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
@@ -145,7 +145,7 @@ def test_create_stream():
     tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
                                          crema.dsp.librosa['hop_length'])]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
     def __test(n_duration, keys):
         streamer = crema.data.create_stream(sources, tasks, crema_input,
@@ -169,7 +169,7 @@ def test_mux_streams():
     tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
                                          crema.dsp.librosa['hop_length'])]
 
-    crema_input = crema.pre.CremaInput()
+    crema_input = crema.pre.CQTensor()
 
 
     streams = [crema.data.create_stream(sources, tasks, crema_input, n_duration=8) 
