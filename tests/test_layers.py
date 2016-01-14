@@ -76,6 +76,12 @@ def test_conv2_layer():
 
         s1, s2 = x.shape[1:3]
 
+        shape = list(shape)
+
+        for i in [0, 1]:
+            if shape[i] is None:
+                shape[i] = x.shape[i+1]
+
         if mode == 'VALID':
             s1 = s1 - shape[0] + 1
             s2 = s2 - shape[1] + 1
@@ -101,12 +107,17 @@ def test_conv2_layer():
     yield __test, [5, 1], 3, tf.nn.relu, None, 'VALID', [1], False
     yield __test, [1, 5], 3, tf.nn.relu, None, 'VALID', [2], False
 
-    for shape in [[1,3], [3, 3], [5, 1]]:
+    for shape in [[1,3], [3, 3], [5, 1], [1, None], [None, 1]]:
         for n_filters in [1, 2, 3]:
             for nl in [tf.nn.relu, tf.nn.relu6, None]:
-                for strides in [None, [min(min(shape), 2), min(min(shape), 2)]]:
-                    for mode in ['SAME', 'VALID']:
-                        for reg in [False, True]:
+                for reg in [False, True]:
+                    if None not in shape:
+                        for strides in [None, [min(min(shape), 2), min(min(shape), 2)]]:
+                            for mode in ['SAME', 'VALID']:
+                                yield __test, shape, n_filters, nl, strides, mode, None, reg
+                    else:
+                        strides = None
+                        for mode in ['SAME', 'VALID']:
                             yield __test, shape, n_filters, nl, strides, mode, None, reg
 
 @new_graph
