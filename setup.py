@@ -40,6 +40,7 @@ setup(
         'jams>=0.2.1',
         'presets>=0.1',
         'shove',
+        'yaml',
     ],
     extras_require={
         'docs': ['numpydoc']

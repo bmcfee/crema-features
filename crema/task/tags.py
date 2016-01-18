@@ -28,7 +28,7 @@ INSTRUMENTS = ['drum set',
 
 class TimeSeriesLabelTransformer(BaseTaskTransformer):
 
-    def __init__(self, namespace, sr, hop_length, name, labels=None):
+    def __init__(self, namespace, name, labels=None):
         '''Initialize a time-series label transformer
 
         Parameters
@@ -43,8 +43,7 @@ class TimeSeriesLabelTransformer(BaseTaskTransformer):
             The (pre-constructed) label encoder
         '''
 
-        super(TimeSeriesLabelTransformer, self).__init__(namespace,
-                                                         sr, hop_length, 0)
+        super(TimeSeriesLabelTransformer, self).__init__(namespace, 0)
 
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])
@@ -92,7 +91,7 @@ class GlobalLabelTransformer(BaseTaskTransformer):
             The JAMS object container
         '''
 
-        super(GlobalLabelTransformer, self).__init__(namespace, 1, 1, 0)
+        super(GlobalLabelTransformer, self).__init__(namespace, 0)
 
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([labels])

@@ -58,7 +58,7 @@ def test_slice_data():
 
 def test_jams_mapping():
 
-    tasks = [crema.task.BeatTransformer(1000, 100),
+    tasks = [crema.task.BeatTransformer(),
              crema.task.VectorTransformer('vector', 64)]
 
     jam = jams.load(TEST_JAMS)
@@ -74,8 +74,7 @@ def test_jams_mapping():
 
 
 def test_make_data():
-    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'],
-                                        crema.dsp.librosa['hop_length']),
+    tasks = [crema.task.BeatTransformer(),
              crema.task.VectorTransformer('vector', 64)]
 
     crema_input = crema.pre.CQTensor()
@@ -95,8 +94,7 @@ def test_make_data():
 
 
 def test_sampler():
-    tasks = [crema.task.BeatTransformer(crema.dsp.librosa['sr'],
-                                        crema.dsp.librosa['hop_length']),
+    tasks = [crema.task.BeatTransformer(),
              crema.task.VectorTransformer('vector', 64)]
 
     crema_input = crema.pre.CQTensor()
@@ -142,8 +140,7 @@ def test_create_stream():
 
     sources = pd.read_csv('data/test_index.csv')
 
-    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
-                                         crema.dsp.librosa['hop_length'])]
+    tasks = [crema.task.ChordTransformer()]
 
     crema_input = crema.pre.CQTensor()
 
@@ -166,8 +163,7 @@ def test_create_stream():
 def test_mux_streams():
     sources = pd.read_csv('data/test_index.csv')
 
-    tasks = [crema.task.ChordTransformer(crema.dsp.librosa['sr'],
-                                         crema.dsp.librosa['hop_length'])]
+    tasks = [crema.task.ChordTransformer()]
 
     crema_input = crema.pre.CQTensor()
 

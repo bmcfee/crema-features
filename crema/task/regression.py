@@ -11,7 +11,7 @@ class VectorTransformer(BaseTaskTransformer):
 
     def __init__(self, namespace, dimension, name='vector'):
 
-        super(VectorTransformer, self).__init__(namespace, 1, 1, 0)
+        super(VectorTransformer, self).__init__(namespace, 0)
 
         self.dimension = dimension
         self.name = name

@@ -3,16 +3,16 @@
 '''The base class for task transformer objects'''
 
 import numpy as np
+
+# Note: we use the local preset-bound librosa here
 from ..dsp import librosa
 
 
 class BaseTaskTransformer(object):
     '''Base class for task transformer objects'''
 
-    def __init__(self, namespace, sr, hop_length, fill_na):
+    def __init__(self, namespace, fill_na):
         self.namespace = namespace
-        self.sr = sr
-        self.hop_length = hop_length
 
         if fill_na is None:
             fill_na = np.nan
@@ -30,13 +30,9 @@ class BaseTaskTransformer(object):
 
     def encode_events(self, duration, events, values):
 
-        frames = librosa.time_to_frames(events,
-                                        sr=self.sr,
-                                        hop_length=self.hop_length)
+        frames = librosa.time_to_frames(events)
 
-        n_total = librosa.time_to_frames(duration,
-                                         sr=self.sr,
-                                         hop_length=self.hop_length)
+        n_total = librosa.time_to_frames(duration)
 
         target = np.empty((n_total, values.shape[1]),
                           dtype=values.dtype)
@@ -50,13 +46,9 @@ class BaseTaskTransformer(object):
 
     def encode_intervals(self, duration, intervals, values):
 
-        frames = librosa.time_to_frames(intervals,
-                                        sr=self.sr,
-                                        hop_length=self.hop_length)
+        frames = librosa.time_to_frames(intervals)
 
-        n_total = librosa.time_to_frames(duration,
-                                         sr=self.sr,
-                                         hop_length=self.hop_length)
+        n_total = librosa.time_to_frames(duration)
 
         target = np.empty((n_total, values.shape[-1]),
                           dtype=values.dtype)
