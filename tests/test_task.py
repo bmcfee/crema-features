@@ -3,11 +3,15 @@
 '''Tests for first-level audio feature extraction'''
 
 import crema
+from crema.dsp import librosa
+
 import numpy as np
 
 import jams
 
 from nose.tools import eq_, raises
+
+N_REPEAT = librosa['sr'] // librosa['hop_length']
 
 
 def test_task_chord_present():
@@ -25,7 +29,7 @@ def test_task_chord_present():
     jam.annotations.append(ann)
 
     # One second = one frame
-    T = crema.task.ChordTransformer(sr=1, hop_length=1)
+    T = crema.task.ChordTransformer()
 
     output = T.transform(jam)
 
@@ -54,15 +58,15 @@ def test_task_chord_present():
                             [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
 
-    assert np.allclose(output['output_pitches'], pcp_true)
-    assert np.allclose(output['output_root'], root_true)
-    assert np.allclose(output['output_bass'], bass_true)
+    assert np.allclose(output['output_pitches'], np.repeat(pcp_true, N_REPEAT, axis=0))
+    assert np.allclose(output['output_root'], np.repeat(root_true, N_REPEAT, axis=0))
+    assert np.allclose(output['output_bass'], np.repeat(bass_true, N_REPEAT, axis=0))
 
 
 def test_task_chord_absent():
 
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
-    T = crema.task.ChordTransformer(sr=1, hop_length=1)
+    T = crema.task.ChordTransformer()
 
     output = T.transform(jam)
 
@@ -70,9 +74,9 @@ def test_task_chord_absent():
     eq_(output['mask_chord'], False)
 
     # Check the shape
-    assert np.allclose(output['output_pitches'].shape, [4, 12])
-    assert np.allclose(output['output_root'].shape, [4, 13])
-    assert np.allclose(output['output_bass'].shape, [4, 13])
+    assert np.allclose(output['output_pitches'].shape, [4 * N_REPEAT, 12])
+    assert np.allclose(output['output_root'].shape, [4 * N_REPEAT, 13])
+    assert np.allclose(output['output_bass'].shape, [4 * N_REPEAT, 13])
 
     # Make sure it's empty
     assert not np.any(output['output_pitches'])
@@ -96,8 +100,6 @@ def test_task_tslabel_present():
 
     jam.annotations.append(ann)
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
-                                              sr=1,
-                                              hop_length=1,
                                               name='madeup',
                                               labels=labels)
 
@@ -109,10 +111,10 @@ def test_task_tslabel_present():
     y = output['output_madeup']
 
     # Check the shape
-    assert np.allclose(y.shape, [4, len(labels)])
+    assert np.allclose(y.shape, [4 * N_REPEAT, len(labels)])
 
     # Decode the labels
-    predictions = T.encoder.inverse_transform(y)
+    predictions = T.encoder.inverse_transform(y[::N_REPEAT])
 
     true_labels = [['alpha', 'beta'], [], [], ['disco']]
 
@@ -125,8 +127,6 @@ def test_task_tslabel_absent():
 
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
     T = crema.task.TimeSeriesLabelTransformer(namespace='tag_open',
-                                              sr=1,
-                                              hop_length=1,
                                               name='madeup',
                                               labels=labels)
 
@@ -137,7 +137,7 @@ def test_task_tslabel_absent():
     y = output['output_madeup']
 
     # Check the shape
-    assert np.allclose(y.shape, [4, len(labels)])
+    assert np.allclose(y.shape, [4 * N_REPEAT, len(labels)])
 
     # Make sure it's empty
     assert not np.any(y)
@@ -280,8 +280,7 @@ def test_task_beat_present():
 
     jam.annotations.append(ann)
 
-    # One second = one frame
-    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+    T = crema.task.BeatTransformer()
 
     output = T.transform(jam)
 
@@ -289,21 +288,20 @@ def test_task_beat_present():
     eq_(output['mask_beat'], True)
     eq_(output['mask_downbeat'], True)
 
-    # Check the shape: 4 seconds at 2 samples per second
     # The first channel measures beats
     # The second channel measures downbeats
-    assert np.allclose(output['output_beat'].shape, [8, 1])
-    assert np.allclose(output['output_downbeat'].shape, [8, 1])
+    assert np.allclose(output['output_beat'].shape, [4 * N_REPEAT, 1])
+    assert np.allclose(output['output_downbeat'].shape, [4 * N_REPEAT, 1])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   a downbeat every three seconds (6 samples)
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]]).T
-    downbeat_true = np.asarray([[1, 0, 0, 0, 0, 0, 1, 0]]).T
+    beat_true = np.asarray([[1, 1, 1, 1]]).T
+    downbeat_true = np.asarray([[1, 0, 0, 1]]).T
 
-    assert np.allclose(output['output_beat'], beat_true)
-    assert np.allclose(output['output_downbeat'], downbeat_true)
+    assert np.allclose(output['output_beat'][::N_REPEAT], beat_true)
+    assert np.allclose(output['output_downbeat'][::N_REPEAT], downbeat_true)
 
 
 def test_task_beat_nometer():
@@ -321,7 +319,7 @@ def test_task_beat_nometer():
     jam.annotations.append(ann)
 
     # One second = one frame
-    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+    T = crema.task.BeatTransformer()
 
     output = T.transform(jam)
 
@@ -330,18 +328,18 @@ def test_task_beat_nometer():
     eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(output['output_beat'].shape, [8, 1])
-    assert np.allclose(output['output_downbeat'].shape, [8, 1])
+    assert np.allclose(output['output_beat'].shape, [4 * N_REPEAT, 1])
+    assert np.allclose(output['output_downbeat'].shape, [4 * N_REPEAT, 1])
 
     # Ideal vectors:
     #   a beat every second (two samples)
     #   no downbeats
 
-    beat_true = np.asarray([[1, 0, 1, 0, 1, 0, 1, 0]]).T
-    downbeat_true = np.asarray([[0, 0, 0, 0, 0, 0, 0, 0]]).T
+    beat_true = np.asarray([1, 1, 1, 1])
+    downbeat_true = np.asarray([0, 0, 0, 0])
 
-    assert np.allclose(output['output_beat'], beat_true)
-    assert np.allclose(output['output_downbeat'], downbeat_true)
+    assert np.allclose(output['output_beat'][::N_REPEAT], beat_true)
+    assert np.allclose(output['output_downbeat'][::N_REPEAT], downbeat_true)
 
 
 def test_task_beat_absent():
@@ -350,7 +348,7 @@ def test_task_beat_absent():
     jam = jams.JAMS(file_metadata=dict(duration=4.0))
 
     # One second = one frame
-    T = crema.task.BeatTransformer(sr=2, hop_length=1)
+    T = crema.task.BeatTransformer()
 
     output = T.transform(jam)
 
@@ -359,7 +357,7 @@ def test_task_beat_absent():
     eq_(output['mask_downbeat'], False)
 
     # Check the shape: 4 seconds at 2 samples per second
-    assert np.allclose(output['output_beat'].shape, [8, 1])
-    assert np.allclose(output['output_downbeat'].shape, [8, 1])
+    assert np.allclose(output['output_beat'].shape, [4 * N_REPEAT, 1])
+    assert np.allclose(output['output_downbeat'].shape, [4 * N_REPEAT, 1])
     assert not np.any(output['output_beat'])
     assert not np.any(output['output_downbeat'])
