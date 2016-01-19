@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+'''Module constructors'''
 
-import tensorflow as tf
+import tensorflow as tf     # pylint: disable=import-error
 
 from . import ops
 from . import layers
+
 
 def chord(features, name='chord'):
     '''Construct the submodule for chord estimation
@@ -151,3 +153,70 @@ def tags_global(features, n_tags, name='tags'):
     tf.scalar_summary('tags/{:s}'.format(name), f_mask * tag_loss)
 
     return tags
+
+
+def regression(features, dimension, name='factor'):
+    '''Construct a linear regression layer
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input features
+
+    dimension : int > 0
+        The number of regression outputs
+
+    name : str
+        The name for this submodule
+
+    Returns
+    -------
+    vec : tf.Tensor
+        The predictor outputs
+    '''
+    target_vec = tf.placeholder(tf.float32, shape=[None, dimension],
+                                name='output_{:s}'.format(name))
+
+    mask_vec = tf.placeholder(tf.bool, shape=[None],
+                              name='mask_{:s}'.format(name))
+
+    with tf.name_scope(name):
+
+        z_vec = ops.expand_mask(mask_vec, name='mask_vec')
+
+        # One convolutional layer
+        conv_layer = layers.conv2_layer(features,
+                                        [1, 1],
+                                        dimension * 8,
+                                        mode='VALID',
+                                        name='factor_conv')
+
+        # Pool out the time dimension
+        with tf.name_scope('pooling'):
+            conv_maxpool = tf.reduce_max(conv_layer, reduction_indices=[1, 2])
+            conv_meanpool = tf.reduce_mean(conv_layer, reduction_indices=[1, 2])
+
+            conv_pool = tf.concat(1, [conv_maxpool, conv_meanpool])
+
+        vec_predict = layers.dense_layer(conv_pool,
+                                         dimension,
+                                         name='predictor',
+                                         nonlinearity=None,
+                                         reg=True)
+
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_vec))
+            with tf.name_scope('vec'):
+                vec_loss = tf.reduce_mean(z_vec * tf.nn.l2_loss(vec_predict - target_vec),
+                                          name='vec_loss')
+
+
+    tf.add_to_collection('outputs', vec_predict)
+    tf.add_to_collection('inputs', target_vec)
+    tf.add_to_collection('inputs', mask_vec)
+
+    tf.add_to_collection('loss', vec_loss)
+
+    tf.scalar_summary('regression/{:s}'.format(name), f_mask * vec_loss)
+
+    return vec_predict
