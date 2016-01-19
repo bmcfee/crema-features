@@ -1,10 +1,58 @@
 #!/usr/bin/env python
 '''Module constructors'''
 
+import copy
 import tensorflow as tf     # pylint: disable=import-error
 
 from . import ops
 from . import layers
+
+def shared(inputs, layer_defs=None, name='shared'):
+    '''Create a low-level feature extraction module
+
+    Parameters
+    ----------
+    inputs : dict: str -> tf.Tensor
+        A collection of input variables
+
+    layer_defs : list
+        A list of layer specifications
+
+    name : str
+        The name for this subgraph
+
+    Returns
+    -------
+    features : tf.Tensor
+        The output node of the final layer
+    '''
+
+    layer_defs = copy.deepcopy(layer_defs)
+
+    for key in ['input_cqt', 'input_cqtensor']:
+        if key in inputs:
+            break
+
+    variables = {key: inputs[key]}
+
+    with tf.name_scope(name):
+        for layer in layer_defs:
+
+            for node, params in layer.items():
+                layer_in = variables[params.pop('input')]
+                layer_out = params.get('name')
+
+                try:
+                    operator = getattr(ops, node)
+                except AttributeError:
+                    operator = getattr(layers, node)
+
+                variables[layer_out] = operator(layer_in, **params)
+
+    # Add the last output to the outputs collection
+    tf.add_to_collection('outputs', variables[layer_out])
+
+    return variables[layer_out]
 
 
 def chord(features, name='chord'):
