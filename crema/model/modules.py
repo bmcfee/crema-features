@@ -36,11 +36,11 @@ def chord_module(features, name='chord'):
     mask_chord = tf.placeholder(tf.bool, shape=[None], name='mask_chord')
 
     with tf.name_scope(name):
-        z_chord = ops.expand_mask(mask_chord, name='z_chord')
+        z_chord = ops.expand_mask(mask_chord, name='mask_chord')
 
         pitch_logit = layers.conv2_multilabel(features, 12,
                                               squeeze_dims=[2],
-                                              name='pitch_module')
+                                              name='pitches_module')
 
         root_logit = layers.conv2_softmax(features, 13,
                                           squeeze_dims=[2],
@@ -61,21 +61,21 @@ def chord_module(features, name='chord'):
                 pc_loss = tf.reduce_mean(z_chord *
                                          tf.nn.sigmoid_cross_entropy_with_logits(pitch_logit,
                                                                                  tf.to_float(target_pc)),
-                                         name='pitches_loss')
+                                         name='loss')
 
             with tf.name_scope('root'):
                 root_loss = tf.reduce_mean(z_chord *
                                            ops.ndxent(root_logit,
                                                       tf.to_float(target_root),
                                                       [2]),
-                                           name='root_loss')
+                                           name='loss')
 
             with tf.name_scope('bass'):
                 bass_loss = tf.reduce_mean(z_chord *
                                            ops.ndxent(bass_logit,
                                                       tf.to_float(target_bass),
                                                       [2]),
-                                           name='bass_loss')
+                                           name='loss')
 
     tf.add_to_collection('outputs', pitches)
     tf.add_to_collection('outputs', root)
@@ -90,8 +90,8 @@ def chord_module(features, name='chord'):
     tf.add_to_collection('loss', root_loss)
     tf.add_to_collection('loss', bass_loss)
 
-    tf.scalar_summary('chord/pitches', f_mask * pc_loss)
-    tf.scalar_summary('chord/root', f_mask * root_loss)
-    tf.scalar_summary('chord/bass', f_mask * bass_loss)
+    tf.scalar_summary('{:s}/pitches'.format(name), f_mask * pc_loss)
+    tf.scalar_summary('{:s}/root'.format(name), f_mask * root_loss)
+    tf.scalar_summary('{:s}/bass'.format(name), f_mask * bass_loss)
 
     return pitches, root, bass
