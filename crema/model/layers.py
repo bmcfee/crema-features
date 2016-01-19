@@ -197,7 +197,7 @@ def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode
     conv2_layer
     ops.logsigmoid
     '''
-    return conv2_layer(input_tensor, [1, 1], n_classes,
+    return conv2_layer(input_tensor, [1, None], n_classes,
                        name=name,
                        mode=mode,
                        nonlinearity=ops.logsigmoid,
@@ -241,7 +241,7 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
     ops.ndsoftmax
     '''
 
-    return conv2_layer(x, [1, 1], n_classes,
+    return conv2_layer(x, [1, None], n_classes,
                        name=name,
                        mode=mode,
                        nonlinearity=ops.ndsoftmax,

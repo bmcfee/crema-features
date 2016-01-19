@@ -1,0 +1,20 @@
+name: instruments
+task: TimeSeriesLabelTransformer
+params:
+    namespace: tag_medleydb_instruments
+    labels:
+    - drum set
+    - electric bass
+    - piano
+    - male singer
+    - clean electric guitar
+    - vocalists
+    - synthesizer
+    - female singer
+    - acoustic guitar
+    - distorted electric guitar
+    - auxiliary percussion
+    - double bass
+    - violin
+    - cello
+    - flute
