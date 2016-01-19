@@ -1,0 +1,36 @@
+name: shared
+input:
+    pre: CQTensor
+layers:
+    - gain:
+        input: input_cqtensor
+        name: gain
+    - whiten:
+        input: gain
+        name: whiten
+    - conv2_layer:
+        input: whiten
+        shape: [3, 3]
+        n_filters: 16
+        name: layer_1
+    - conv2_layer:
+        input: layer_1
+        shape: [5, 5]
+        n_filters: 32
+        name: layer_2
+    - conv2_layer:
+        input: layer_2
+        shape: [9, 9]
+        n_filters: 64
+        name: layer_3
+    - conv2_layer:
+        input: layer_3
+        shape: [13, 3]
+        n_filters: 128
+        name: layer_4
+    - conv2_layer:
+        input: layer_4
+        shape: [1, null]
+        n_filters: 256
+        mode: VALID
+        name: features

@@ -1,0 +1,36 @@
+name: cal500_genre
+task: GlobalLabelTransformer
+params:
+    namespace: tag_cal500
+    labels:
+    - Genre--_Alternative
+    - Genre--_Alternative_Folk
+    - Genre--_Bebop
+    - Genre--_Brit_Pop
+    - Genre--_Classic_Rock
+    - Genre--_Contemporary_Blues
+    - Genre--_Contemporary_R&B
+    - Genre--_Cool_Jazz
+    - Genre--_Country_Blues
+    - Genre--_Dance_Pop
+    - Genre--_Electric_Blues
+    - Genre--_Funk
+    - Genre--_Gospel
+    - Genre--_Metal/Hard_Rock
+    - Genre--_Punk
+    - Genre--_Roots_Rock
+    - Genre--_Singer_/_Songwriter
+    - Genre--_Soft_Rock
+    - Genre--_Soul
+    - Genre--_Swing
+    - Genre-Bluegrass
+    - Genre-Blues
+    - Genre-Country
+    - Genre-Electronica
+    - Genre-Folk
+    - Genre-Hip_Hop/Rap
+    - Genre-Jazz
+    - Genre-Pop
+    - Genre-R&B
+    - Genre-Rock
+    - Genre-World

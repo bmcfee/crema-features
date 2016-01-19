@@ -9,8 +9,10 @@ from .base import BaseTaskTransformer
 
 class BeatTransformer(BaseTaskTransformer):
 
-    def __init__(self):
+    def __init__(self, name='beat'):
         super(BeatTransformer, self).__init__('beat', 0)
+        
+        self.name = name
 
     def transform(self, jam):
 

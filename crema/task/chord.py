@@ -18,7 +18,7 @@ def _pad_nochord(target, axis=-1):
 
 class ChordTransformer(BaseTaskTransformer):
 
-    def __init__(self):
+    def __init__(self, name='chord'):
         '''Initialize a chord task transformer'''
 
         super(ChordTransformer, self).__init__('chord|chord_harte', 0)
@@ -27,6 +27,7 @@ class ChordTransformer(BaseTaskTransformer):
         self.encoder = MultiLabelBinarizer()
         self.encoder.fit([pitches])
         self._classes = set(self.encoder.classes_)
+        self.name = name
 
 
     def transform(self, jam):

@@ -1,0 +1,5 @@
+name: collab
+task: VectorTransformer
+params:
+    namespace: vector
+    dimension: 64
