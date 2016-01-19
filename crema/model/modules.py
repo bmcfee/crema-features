@@ -5,7 +5,7 @@ import tensorflow as tf
 from . import ops
 from . import layers
 
-def chord_module(features, name='chord'):
+def chord(features, name='chord'):
     '''Construct the submodule for chord estimation
 
     Parameters
@@ -21,10 +21,10 @@ def chord_module(features, name='chord'):
     pitches, root, bass : tf.Tensor
         Prediction nodes for pitches, root, and bass
 
-        pitches are n-by-12, encoding the probability that each
+        pitches are n-by-time-by-12, encoding the probability that each
         pitch class is active.
 
-        root and bass are n-by-13, encoding the distribution over pitches,
+        root and bass are n-by-time-by-13, encoding the distribution over pitches,
         including an additional `N` coordinate for unpitched predictions.
 
     '''
@@ -95,3 +95,59 @@ def chord_module(features, name='chord'):
     tf.scalar_summary('{:s}/bass'.format(name), f_mask * bass_loss)
 
     return pitches, root, bass
+
+
+def tags_global(features, n_tags, name='tags'):
+    '''Construct a global (time-independent) tag module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input features to predict from
+
+    n_tags : int > 0
+        The number of output tags
+
+    name : str
+        A name for this submodule
+
+
+    Returns
+    -------
+    tags : tf.Tensor
+        The prediction output for this module: probability for each tag being active.
+    '''
+    target_tags = tf.placeholder(tf.bool, shape=[None, n_tags], name='output_{:s}'.format(name))
+    mask_tags = tf.placeholder(tf.bool, shape=[None], name='mask_{:s}'.format(name))
+
+    with tf.name_scope(name):
+        z_tag = ops.expand_mask(mask_tags, name='mask_tag')
+
+        # Make the logits
+        tag_logit = layers.conv2_multilabel(features, n_tags, squeeze_dims=[2], name='tag_module')
+
+        # Mean-pool the logits over time
+        global_logit = tf.reduce_mean(tag_logit, reduction_indices=[1], name='tag_pool')
+
+        tags = tf.exp(tag_logit, name='tags_{:s}'.format(name))
+
+        # Set up the losses
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_tag))
+
+            with tf.name_scope('tag'):
+                tag_loss = tf.reduce_mean(z_tag *
+                                          tf.nn.sigmoid_cross_entropy_with_logits(global_logit,
+                                                                                  tf.to_float(target_tags)),
+                                          name='tag_loss')
+
+    tf.add_to_collection('outputs', tags)
+
+    tf.add_to_collection('inputs', target_tags)
+    tf.add_to_collection('inputs', mask_tags)
+
+    tf.add_to_collection('loss', tag_loss)
+
+    tf.scalar_summary('tags/{:s}'.format(name), f_mask * tag_loss)
+
+    return tags
