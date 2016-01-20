@@ -69,7 +69,8 @@ def ndsoftmax(input_tensor, reduction_indices):
     return logits
 
 
-def whiten(input_tensor, s_min=1e-5, name=None):
+# TODO: make this support different reduction indices
+def whiten(input_tensor, reduction_indices, s_min=1e-5, name=None):
     '''Per-sample whitening:
         input_tensor[i] -> zscore(input_tensor[i])
 
@@ -77,6 +78,9 @@ def whiten(input_tensor, s_min=1e-5, name=None):
     ----------
     input_tensor : tf.Tensor
         The tensor to whiten
+
+    reduction_indices : list of int
+        The dimensions over which to estimate statistics
 
     s_min : float > 0
         Clip standard deviation
@@ -90,18 +94,17 @@ def whiten(input_tensor, s_min=1e-5, name=None):
         Operator which computes the locally whitened input tensor
     '''
     ndim = len(input_tensor.get_shape())
-    reduction_idx = list(range(1, ndim))
 
     with tf.name_scope(name):
         mean = tf.reduce_mean(input_tensor,
-                              reduction_indices=reduction_idx,
+                              reduction_indices=reduction_indices,
                               keep_dims=True)
 
         centered = input_tensor - mean
 
         istd = tf.rsqrt(tf.maximum(s_min**2,
                                    tf.reduce_mean(tf.square(centered),
-                                                  reduction_indices=reduction_idx,
+                                                  reduction_indices=reduction_indices,
                                                   keep_dims=True)))
         zscored = tf.mul(centered, istd, name='activation')
 

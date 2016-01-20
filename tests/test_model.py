@@ -78,32 +78,35 @@ def test_ndsoftmax():
         yield __test, axis
 
 
-def __whiten(x):
+def __whiten(x, idx, s_min=1e-10):
 
-    z = np.zeros_like(x)
+    mu = np.mean(x, axis=idx, keepdims=True)
+    sig = np.std(x, axis=idx, keepdims=True)
 
-    for i in range(x.shape[0]):
-        z[i] = scipy.stats.zscore(x[i], axis=None)
-
-    return z
+    return (x - mu) / np.maximum(sig, s_min)
 
 
-@new_graph
 def test_whiten():
-    x = 100 * np.abs(np.random.randn(5, 5, 5), dtype=np.float32) + 30
+    x = 100 * np.abs(np.random.randn(5, 6, 7, 8), dtype=np.float32) + 30
 
-    x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+    @new_graph
+    def __test(idx):
+        idx = tuple(idx)
 
-    outvars = crema.model.ops.whiten(x_in, s_min=1e-10)
+        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
 
-    with tf.Session() as sess:
-        y_pred = sess.run(outvars, feed_dict={x_in: x})
+        outvars = crema.model.ops.whiten(x_in, idx, s_min=1e-10)
 
-    y_true = __whiten(x)
+        with tf.Session() as sess:
+            y_pred = sess.run(outvars, feed_dict={x_in: x})
 
-    eq_(y_pred.shape, x.shape)
-    assert np.allclose(y_true, y_pred, atol=1e-6)
+        y_true = __whiten(x, idx, s_min=1e-10)
 
+        eq_(y_pred.shape, x.shape)
+        assert np.allclose(y_true, y_pred, atol=1e-6)
+
+    for idx in [ [1, 2, 3], [2, 3], [3], [1, 2]]:
+        yield __test, idx
 
 def __gain(x, default):
 
