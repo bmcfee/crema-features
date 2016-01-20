@@ -8,6 +8,7 @@ layers:
     - whiten:
         input: gain
         name: whiten
+        reduction_indices: [1, 2]
     - conv2_layer:
         input: whiten
         shape: [3, 3]
