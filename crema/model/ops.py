@@ -69,7 +69,6 @@ def ndsoftmax(input_tensor, reduction_indices):
     return logits
 
 
-# TODO: make this support different reduction indices
 def whiten(input_tensor, reduction_indices, s_min=1e-5, name=None):
     '''Per-sample whitening:
         input_tensor[i] -> zscore(input_tensor[i])
