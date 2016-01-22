@@ -3,9 +3,12 @@
 
 import copy
 import tensorflow as tf     # pylint: disable=import-error
+import six
 
 from . import ops
 from . import layers
+from .. import pre
+from .. import task
 
 def shared(inputs, layer_defs=None, name='shared'):
     '''Create a low-level feature extraction module
@@ -326,3 +329,78 @@ def regression(features, dimension, name='factor'):
     tf.scalar_summary('regression/{:s}'.format(name), f_mask * vec_loss)
 
     return vec_predict
+
+
+def make_input(spec):
+    '''Construct the pre-processor, input variable, and shared features
+
+    Parameters
+    ----------
+    spec : dict
+        An input specification dictionary
+
+    Returns
+    -------
+    crema_input : crema.pre.CremaInput
+        The input transformation object
+
+    features : tf.Tensor
+        The feature output node
+    '''
+
+    cls = getattr(pre, spec['input']['pre'])
+    crema_input = cls(**spec['input'].get('kwargs', {}))
+
+    in_vars = dict()
+
+    for varname, varspec in six.iteritems(crema_input.var):
+        in_vars[varname] = tf.placeholder(varspec.dtype,
+                                          shape=[None,
+                                                 varspec.width,
+                                                 varspec.height,
+                                                 varspec.channels],
+                                          name=varname)
+
+        tf.add_to_collection('inputs', in_vars[varname])
+
+    features = shared(in_vars, layer_defs=spec['layers'], name=spec['name'])
+
+    return crema_input, features
+
+def make_output(features, spec):
+    '''Construct an output module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        Shared input features
+
+    spec : dict
+        Output module specification
+
+    Returns
+    -------
+    transformer : crema.task.BaseTransformer
+        The task transformer object
+
+    '''
+
+    Task = getattr(task, spec['task'])
+    transformer = Task(name=spec['name'], **spec.get('params', {}))
+
+    kwargs = dict(name=transformer.name)
+    if isinstance(transformer, task.ChordTransformer):
+        builder = chord
+    elif isinstance(transformer, task.TimeSeriesLabelTransformer):
+        builder = tags
+        kwargs['n_tags'] = len(transformer.encoder.classes_)
+    elif isinstance(transformer, task.GlobalLabelTransformer):
+        builder = tags_global
+        kwargs['n_tags'] = len(transformer.encoder.classes_)
+    elif isinstance(transformer, task.VectorTransformer):
+        builder = regression
+        kwargs['dimension'] = transformer.dimension
+    else:
+        raise TypeError('Unsupported transformer type: {:s}'.format(type(transformer)))
+
+    return transformer, builder(features, **kwargs)
