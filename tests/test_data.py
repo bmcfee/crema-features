@@ -127,7 +127,7 @@ def test_data_cache():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
-    cache = crema.data.init_cache('simple://')
+    cache = crema.data.init_cache('./crema_cache/')
 
     data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
     data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
