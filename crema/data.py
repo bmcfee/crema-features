@@ -5,7 +5,7 @@ import numpy as np
 import six
 import jams
 import pescador
-import shove
+from joblib import Memory
 
 from sklearn.cross_validation import LabelShuffleSplit
 
@@ -15,10 +15,10 @@ def init_cache(uri):
     Parameters
     ----------
     uri : str
-        See shove.Shove() for details
+        See joblib.Memory() for details
     '''
 
-    return shove.Shove(uri)
+    return Memory(cachedir=uri)
 
 
 def jams_mapping(jams_in, task_map, validate=False):
@@ -143,7 +143,7 @@ def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     crema_input : crema.pre.CremaInput
         The input feature extraction object
 
-    cache : Shove or None
+    cache : joblib.Memory or None
         A cache object for pre-computed input features
 
     Returns
@@ -159,14 +159,12 @@ def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     data = jams_mapping(jams_in, task_map)
 
     # Load the audio data
-    if cache is not None:
-        if audio_in not in cache:
-            cache[audio_in] = crema_input.extract(audio_in)
-            cache.sync()
+    extract = crema_input.extract
 
-        features = cache[audio_in]
-    else:
-        features = crema_input.extract(audio_in)
+    if cache is not None:
+        extract = cache.cache(extract)
+
+    features = extract(audio_in)
 
     for key in features:
         data[key] = features[key][np.newaxis]
