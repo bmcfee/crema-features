@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 import jams
 from tqdm import tqdm
-import six
+
 
 def process_args(args):
     '''Parse arguments'''
@@ -26,7 +26,7 @@ def jam_to_audio(jam_file):
 
     jam = jams.load(jam_file)
 
-    return six.u(jam.sandbox.content_path)
+    return str(jam.sandbox.content_path)
 
 
 def index_audio(audio_files, split_ext):
@@ -35,7 +35,7 @@ def index_audio(audio_files, split_ext):
         idx = lambda x : os.path.splitext(x)[0]
     else:
         idx = lambda x : x
-    return {six.u(idx(os.path.basename(fn))): fn
+    return {idx(os.path.basename(fn)): fn
             for fn in audio_files}
 
 
