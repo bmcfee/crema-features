@@ -203,7 +203,7 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cac
 
 
 def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
-                  n_alive=32, cache=None, keys=None):
+                  n_alive=32, cache=None, thread=False, keys=None):
     '''Create a crema data stream
 
     Parameters
@@ -229,6 +229,9 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
     cache : Shove or None
         feature cache object
 
+    thread: bool
+        if true, launch this stream in a parallel thread
+
     keys : iterable or None
         If given, only elements of `sources` belonging to `keys` will be
         processed
@@ -249,7 +252,12 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
-    return pescador.Streamer(pescador.mux, seeds, None, n_alive)
+    streamer = pescador.Streamer(pescador.mux, seeds, None, n_alive)
+
+    if thread:
+        return pescador.Streamer(pescador.zmq_stream, streamer)
+    else:
+        return streamer
 
 
 def mux_streams(streams, n_samples, n_batch=64):

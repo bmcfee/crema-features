@@ -144,9 +144,9 @@ def test_create_stream():
 
     crema_input = crema.pre.CQTensor()
 
-    def __test(n_duration, keys):
+    def __test(n_duration, keys, thread):
         streamer = crema.data.create_stream(sources, tasks, crema_input,
-                                            n_duration=n_duration, keys=keys)
+                                            n_duration=n_duration, keys=keys, thread=thread)
 
         # Bound the stream to 10 examples, otherwise we'll run forever
         for sample, _ in zip(streamer.generate(), range(10)):
@@ -154,10 +154,11 @@ def test_create_stream():
 
     for n_duration in [1, 8, 16]:
         for keys in [None, [1]]:
-            yield __test, n_duration, keys
+            for thread in [False, True]:
+                yield __test, n_duration, keys, thread
 
     # And test for an exception if we give a bogus key
-    yield raises(RuntimeError)(__test), 8, ['bogus key']
+    yield raises(RuntimeError)(__test), 8, ['bogus key'], False
 
 
 def test_mux_streams():
