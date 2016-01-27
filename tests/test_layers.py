@@ -109,7 +109,7 @@ def test_conv2_layer():
 
     for shape in [[1,3], [3, 3], [5, 1], [1, None], [None, 1]]:
         for n_filters in [1, 2, 3]:
-            for nl in [tf.nn.relu, tf.nn.relu6, None]:
+            for nl in [tf.nn.relu, tf.nn.relu6, 'relu', None]:
                 for reg in [False, True]:
                     if None not in shape:
                         for strides in [None, [min(min(shape), 2), min(min(shape), 2)]]:

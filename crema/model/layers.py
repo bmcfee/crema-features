@@ -2,10 +2,10 @@
 # -*- encoding: utf-8 -*-
 '''Model layer constructors'''
 
+import six
 import tensorflow as tf
 from . import init
 from . import ops
-
 
 def dense_layer(input_tensor, n_units, name=None, nonlinearity=tf.nn.relu,
                 reg=False, nl_kwargs=None):
@@ -127,6 +127,9 @@ def conv2_layer(input_tensor, shape, n_filters,
 
     if nonlinearity is None:
         nonlinearity = tf.identity
+    elif isinstance(nonlinearity, six.string_types):
+        nonlinearity = getattr(tf.nn, nonlinearity)
+
 
     if strides is None:
         strides = [1, 1, 1, 1]
