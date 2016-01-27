@@ -5,20 +5,8 @@ import numpy as np
 import six
 import jams
 import pescador
-from joblib import Memory
 
 from sklearn.cross_validation import LabelShuffleSplit
-
-def init_cache(uri):
-    '''Instantiate a feature cache with shove`
-
-    Parameters
-    ----------
-    uri : str
-        See joblib.Memory() for details
-    '''
-
-    return Memory(cachedir=uri)
 
 
 def jams_mapping(jams_in, task_map, validate=False):

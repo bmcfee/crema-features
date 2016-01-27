@@ -4,6 +4,7 @@
 
 import jams
 import numpy as np
+import joblib
 
 from nose.tools import eq_, raises
 
@@ -127,8 +128,7 @@ def test_data_cache():
     data = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input)
 
     # Then create a cache
-    cache = crema.data.init_cache('./crema_cache/')
-
+    cache = joblib.Memory(cachedir='./crema_cache/', verbose=0)
     data2 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
     data3 = crema.data.make_task_data(TEST_FILE, TEST_JAMS, [], crema_input, cache=cache)
 
