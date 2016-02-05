@@ -11,6 +11,12 @@ from .dsp import librosa
 Tensor = namedtuple('Tensor', ['dtype', 'width', 'height', 'channels'])
 
 
+def _oversample_to_scale(over_sample):
+    '''Compute a filter scale from the frequency over-sampling factor'''
+
+    return (2.0**(1./(over_sample * 12)) - 1) / (2.0**(1./12) - 1)
+
+
 class CremaInput(object):
     def __init__(self):
         raise NotImplementedError
@@ -22,6 +28,7 @@ class CQTensor(CremaInput):
 
         self.n_octaves = n_octaves
         self.over_sample = over_sample
+        self.resolution = _oversample_to_scale(self.over_sample)
 
         if fmin is None:
             fmin = librosa.note_to_hz('C1')
@@ -71,6 +78,7 @@ class CQTensor(CremaInput):
         cqspec = librosa.cqt(y,
                              n_bins=12 * self.n_octaves * self.over_sample,
                              bins_per_octave=12 * self.over_sample,
+                             resolution=self.resolution,
                              fmin=self.fmin).astype(self.dtype)
 
         # Max-normalize
@@ -123,6 +131,7 @@ class CQFlat(CremaInput):
 
         self.n_octaves = n_octaves
         self.over_sample = over_sample
+        self.resolution = _oversample_to_scale(self.over_sample)
 
         if fmin is None:
             fmin = librosa.note_to_hz('C1')
@@ -171,6 +180,7 @@ class CQFlat(CremaInput):
         cqspec = librosa.cqt(y,
                              n_bins=12 * self.n_octaves * self.over_sample,
                              bins_per_octave=12 * self.over_sample,
+                             resolution=self.resolution,
                              fmin=self.fmin).astype(self.dtype)
 
         # Max-normalize
