@@ -9,4 +9,4 @@ import presets
 
 librosa = presets.Preset(_librosa)
 librosa['sr'] = 32768
-librosa['hop_length'] = 512
+librosa['hop_length'] = 256
