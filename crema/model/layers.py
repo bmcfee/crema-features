@@ -264,7 +264,7 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        reg=reg)
 
 
-def __get_global(name, collection='global', scope='global'):
+def __get_global(name, collection='global', scope=None):
     '''Get a variable by name from the global context'''
 
     collection = tf.get_collection(collection, scope=scope)
@@ -305,7 +305,7 @@ def batch_norm_layer(x, n_out, decay=0.9, name='batchnorm', affine=True):
     Based on the implementation described at http://stackoverflow.com/a/34634291
     """
 
-    train_flag = __get_global('input_train')[0]
+    train_flag = __get_global('is_training')[0]
 
     with tf.variable_scope(name):
         beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
@@ -319,15 +319,16 @@ def batch_norm_layer(x, n_out, decay=0.9, name='batchnorm', affine=True):
 
         ema_apply_op = ema.apply([batch_mean, batch_var])
 
-        ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
-
         def __mean_var_with_update():
             with tf.control_dependencies([ema_apply_op]):
                 return tf.identity(batch_mean), tf.identity(batch_var)
 
+        def __mean_var_without_update():
+            return ema.average(batch_mean), ema.average(batch_var)
+
         mean, var = control_flow_ops.cond(train_flag,
                                           __mean_var_with_update,
-                                          lambda: (ema_mean, ema_var))
+                                          __mean_var_without_update)
 
         normed = tf.nn.batch_norm_with_global_normalization(x, mean, var,
                                                             beta, gamma,

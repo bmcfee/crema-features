@@ -13,25 +13,30 @@ layers:
         input: whiten
         shape: [3, 3]
         n_filters: 16
+        batch_norm: True
         name: layer_1
     - conv2_layer:
         input: layer_1
         shape: [5, 5]
         n_filters: 32
+        batch_norm: True
         name: layer_2
     - conv2_layer:
         input: layer_2
         shape: [9, 9]
         n_filters: 64
+        batch_norm: True
         name: layer_3
     - conv2_layer:
         input: layer_3
         shape: [13, 3]
         n_filters: 128
+        batch_norm: True
         name: layer_4
     - conv2_layer:
         input: layer_4
         shape: [1, null]
         n_filters: 256
         mode: VALID
+        batch_norm: True
         name: features
