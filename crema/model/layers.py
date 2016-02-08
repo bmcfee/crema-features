@@ -4,6 +4,8 @@
 
 import six
 import tensorflow as tf
+from tensorflow.python import control_flow_ops
+
 from . import init
 from . import ops
 
@@ -74,6 +76,7 @@ def conv2_layer(input_tensor, shape, n_filters,
                 mode='SAME',
                 squeeze_dims=None,
                 reg=False,
+                batch_norm=False,
                 nl_kwargs=None):
     '''A 2-dimensional convolution layer.
 
@@ -105,6 +108,9 @@ def conv2_layer(input_tensor, shape, n_filters,
 
     reg : bool
         If true, apply l2 regularization to the weights in this layer
+
+    batch_norm : bool
+        If true, apply batch normalization
 
     nl_kwargs : dict
         If provided, additional keyword arguments to the nonlinearity
@@ -146,9 +152,14 @@ def conv2_layer(input_tensor, shape, n_filters,
 
 
         weight = init.he_uniform(filter_shape, name='weight', sym=sym)
-        bias = init.constant([n_filters], name='bias', default=default_bias)
 
-        response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode) + bias
+        if batch_norm:
+            _response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode)
+            response = batch_norm_layer(_response, n_filters)
+
+        else:
+            bias = init.constant([n_filters], name='bias', default=default_bias)
+            response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode) + bias
 
         activation = nonlinearity(response, **(nl_kwargs if nl_kwargs else {}))
 
@@ -252,3 +263,73 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        squeeze_dims=squeeze_dims,
                        reg=reg)
 
+
+def __get_global(name, collection='global', scope='global'):
+    '''Get a variable by name from the global context'''
+
+    collection = tf.get_collection(collection, scope=scope)
+
+    ops = [_ for _ in collection if name in _.name]
+
+    if not ops:
+        raise ValueError('variable not found: {}'.format(name))
+
+    return ops
+
+
+def batch_norm_layer(x, n_out, decay=0.9, name='batchnorm', affine=True):
+    """Batch normalization on convolutional maps.
+
+    Parameters
+    ----------
+    x: Tensor, 4D
+        BHWD input maps
+
+    n_out: integer
+        depth of input maps
+
+    train_flag: boolean tf.Variable
+        true indicates training phase
+
+    name: string
+        variable scope
+
+    affine: bool
+        whether to affine-transform outputs
+
+    Returns
+    -------
+    normed
+        batch-normalized maps
+
+    Based on the implementation described at http://stackoverflow.com/a/34634291
+    """
+
+    train_flag = __get_global('input_train')[0]
+
+    with tf.variable_scope(name):
+        beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
+                           name='beta', trainable=True)
+        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
+                            name='gamma', trainable=affine)
+
+        batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name='moments')
+
+        ema = tf.train.ExponentialMovingAverage(decay=decay)
+
+        ema_apply_op = ema.apply([batch_mean, batch_var])
+
+        ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
+
+        def __mean_var_with_update():
+            with tf.control_dependencies([ema_apply_op]):
+                return tf.identity(batch_mean), tf.identity(batch_var)
+
+        mean, var = control_flow_ops.cond(train_flag,
+                                          __mean_var_with_update,
+                                          lambda: (ema_mean, ema_var))
+
+        normed = tf.nn.batch_norm_with_global_normalization(x, mean, var,
+                                                            beta, gamma,
+                                                            1e-3, affine)
+    return normed
