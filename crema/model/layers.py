@@ -77,7 +77,8 @@ def conv2_layer(input_tensor, shape, n_filters,
                 squeeze_dims=None,
                 reg=False,
                 batch_norm=False,
-                nl_kwargs=None):
+                nl_kwargs=None,
+                tied_init=False):
     '''A 2-dimensional convolution layer.
 
     Parameters
@@ -151,7 +152,10 @@ def conv2_layer(input_tensor, shape, n_filters,
             default_bias = 0
 
 
-        weight = init.he_uniform(filter_shape, name='weight', sym=sym)
+        if tied_init:
+            weight = init.he_uniform_tied(filter_shape, name='weight', sym=sym)
+        else:
+            weight = init.he_uniform(filter_shape, name='weight', sym=sym)
 
         if batch_norm:
             _response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode)

@@ -103,6 +103,37 @@ def he_uniform(shape, name='weight', sym=False, dtype=tf.float32):
     return tf.Variable(initial, name=name)
 
 
+def he_uniform_tied(shape, name='weight', sym=False, dtype=tf.float32):
+    '''He-initialized (uniform) variable
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of the variable
+
+    name : str
+        Name of this variable
+
+    sym : bool
+        Whether the nonlinearity applied to this variable is symmetric
+        (e.g., sigmoid) or asymmetric (e.g., relu)
+
+    dtype : type
+        Data type for this variable
+
+    Returns
+    -------
+    var : tf.Variable
+        The variable with initialization
+    '''
+
+    sigma = np.sqrt(3) * he_std(shape, sym)
+
+    initial_raw = tf.random_uniform([shape[0], shape[1], shape[3]], minval=-sigma, maxval=sigma, dtype=dtype)
+    initial_full = tf.expand_dims(initial_raw, 2)
+    initial = tf.tile(initial_full, [1, 1, shape[2], 1])
+    return tf.Variable(initial, name=name)
+
 def constant(shape, name='bias', default=0.0, dtype=tf.float32):
     '''Initialize with a constant
 

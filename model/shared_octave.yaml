@@ -14,6 +14,7 @@ layers:
         shape: [3, 3]
         n_filters: 16
         batch_norm: True
+        tied_init: True
         name: layer_1
     - conv2_layer:
         input: layer_1
