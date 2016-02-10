@@ -298,6 +298,7 @@ def regression(features, dimension, name='factor'):
                                         [1, 1],
                                         dimension * 8,
                                         mode='VALID',
+                                        batch_norm=True,
                                         name='factor_conv')
 
         # Pool out the time dimension

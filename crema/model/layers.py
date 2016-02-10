@@ -220,7 +220,6 @@ def conv2_multilabel(input_tensor, n_classes, name=None, squeeze_dims=None, mode
                        mode=mode,
                        nonlinearity=ops.logsigmoid,
                        squeeze_dims=squeeze_dims,
-                       batch_norm=True,
                        reg=reg)
 
 
@@ -266,7 +265,6 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        nonlinearity=ops.ndsoftmax,
                        nl_kwargs=dict(reduction_indices=[2, 3]),
                        squeeze_dims=squeeze_dims,
-                       batch_norm=True,
                        reg=reg)
 
 
