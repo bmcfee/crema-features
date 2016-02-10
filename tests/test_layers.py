@@ -17,6 +17,10 @@ def new_graph(f, *args, **kwargs):
     np.random.seed(1234)
     g = tf.Graph()
     with g.as_default():
+        # Build the is-training node
+        is_training = tf.constant(True, dtype=tf.bool, name='is_training')
+        tf.add_to_collection('global', is_training)
+
         return f(*args, **kwargs)
 
 
