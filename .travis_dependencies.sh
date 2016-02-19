@@ -43,9 +43,10 @@ if [ ! -d "$src" ]; then
         pip install python-coveralls
 
         if [ "$TRAVIS_PYTHON_VERSION" == "2.7" ] ; then
-            pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.0-cp27-none-linux_x86_64.whl 
+            pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.0-py2-none-linux_x86_64.whl
+
         elif [ "$TRAVIS_PYTHON_VERSION" == "3.4" ] ; then
-            pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.0-cp34-none-linux_x86_64.whl 
+            pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.0-cp3-none-linux_x86_64.whl 
 
         fi
 
