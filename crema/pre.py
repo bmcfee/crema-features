@@ -75,11 +75,12 @@ class CQTensor(CremaInput):
 
         n_frames = librosa.time_to_frames(librosa.get_duration(y))
 
-        cqspec = librosa.cqt(y,
-                             n_bins=12 * self.n_octaves * self.over_sample,
-                             bins_per_octave=12 * self.over_sample,
-                             resolution=self.resolution,
-                             fmin=self.fmin).astype(self.dtype)
+        cqspec = np.abs(librosa.cqt(y,
+                                    n_bins=12 * self.n_octaves * self.over_sample,
+                                    bins_per_octave=12 * self.over_sample,
+                                    resolution=self.resolution,
+                                    fmin=self.fmin,
+                                    real=False)).astype(self.dtype)
 
         # Max-normalize
         peak_energy = cqspec.max()
@@ -177,11 +178,12 @@ class CQFlat(CremaInput):
 
         n_frames = librosa.time_to_frames(librosa.get_duration(y))
 
-        cqspec = librosa.cqt(y,
-                             n_bins=12 * self.n_octaves * self.over_sample,
-                             bins_per_octave=12 * self.over_sample,
-                             resolution=self.resolution,
-                             fmin=self.fmin).astype(self.dtype)
+        cqspec = np.abs(librosa.cqt(y,
+                                    n_bins=12 * self.n_octaves * self.over_sample,
+                                    bins_per_octave=12 * self.over_sample,
+                                    resolution=self.resolution,
+                                    fmin=self.fmin,
+                                    real=False)).astype(self.dtype)
 
         # Max-normalize
         peak_energy = cqspec.max()
