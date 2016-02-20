@@ -302,11 +302,7 @@ def regression(features, dimension, name='factor'):
                                         name='factor_conv')
 
         # Pool out the time dimension
-        with tf.name_scope('pooling'):
-            conv_maxpool = tf.reduce_max(conv_layer, reduction_indices=[1, 2])
-            conv_meanpool = tf.reduce_mean(conv_layer, reduction_indices=[1, 2])
-
-            conv_pool = tf.concat(1, [conv_maxpool, conv_meanpool])
+        conv_pool = tf.reduce_mean(conv_layer, reduction_indices=[1, 2])
 
         vec_predict = layers.dense_layer(conv_pool,
                                          dimension,
