@@ -252,7 +252,8 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
-    streamer = pescador.Streamer(pescador.mux, seeds, None, n_alive)
+    streamer = pescador.Streamer(pescador.mux, seeds, None, n_alive,
+                                 with_replacement=False, revive=True)
 
     if thread:
         return pescador.Streamer(pescador.zmq_stream, streamer)
