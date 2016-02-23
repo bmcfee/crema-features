@@ -268,6 +268,48 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        reg=reg)
 
 
+def conv2_semivalid(input_tensor, shape, n_filters, pad_axes, **kwargs):
+    '''A 2D convolution that is valid-mode along one axis and same-mode along
+    the other.
+
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor
+        The input tensor
+
+    shape : list of int
+        The dimensions of the convolutional filters [width, height]
+
+    n_filters : int
+        The number of filters for this layer
+
+    pad_axes : list
+        The dimensions which should have same-mode
+
+    **kwargs
+        Additional keyword arguments to conv2_layer
+
+    Returns
+    -------
+    output : tf.Operator
+        The output node of the layer
+    '''
+
+    paddings = [(0, 0)] * len(input_tensor.get_shape())
+
+    for dim in pad_axes:
+        if shape[dim] is not None:
+            npad = (shape[dim] - 1)//2
+            paddings[1+dim] = (npad, npad)
+        else:
+            raise ValueError('Cannot same-mode pad an implicitly shaped dimension')
+
+    kwargs['mode'] = 'VALID'
+
+    return conv2_layer(tf.pad(input_tensor, paddings), shape, n_filters, **kwargs)
+
+
 def __get_global(name, collection='global', scope=None):
     '''Get a variable by name from the global context'''
 
