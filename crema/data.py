@@ -203,7 +203,7 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cac
 
 
 def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
-                  n_alive=32, cache=None, thread=False, keys=None):
+                  n_alive=32, cache=None, thread=False, keys=None, timeout=None):
     '''Create a crema data stream
 
     Parameters
@@ -236,6 +236,9 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
         If given, only elements of `sources` belonging to `keys` will be
         processed
 
+    timeout : None or number > 0
+        Optional timeout to kill background threads
+
     Returns
     -------
     mux : pescador.Streamer
@@ -256,7 +259,7 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
                                  with_replacement=False, revive=True)
 
     if thread:
-        return pescador.Streamer(pescador.zmq_stream, streamer)
+        return pescador.Streamer(pescador.zmq_stream, streamer, timeout=timeout)
     else:
         return streamer
 
