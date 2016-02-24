@@ -127,7 +127,10 @@ def conv2_layer(input_tensor, shape, n_filters,
     # If a shape is None, make it span the full extent of that input dimension
     shape = list(shape)
     for i in [0, 1]:
+
         if shape[i] is None:
+            if x_shape[i+1].value is None:
+                raise ValueError('Cannot infer filter shape on dimension {}'.format(i+1))
             shape[i] = int(x_shape[i+1])
 
     filter_shape = [shape[0], shape[1], int(x_shape[-1]), n_filters]

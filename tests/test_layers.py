@@ -162,13 +162,13 @@ def test_conv2_softmax():
 def test_conv2_semivalid():
 
     @new_graph
-    def __test(shape, pad_axes):
+    def __test(shape, shape_in, pad_axes):
         # Our input batch
         x = np.random.randn(20, 7, 7, 8)
 
         n_filters = 2
 
-        x_in = tf.placeholder(tf.float32, shape=x.shape, name='x')
+        x_in = tf.placeholder(tf.float32, shape=shape_in, name='x')
         output = crema.model.layers.conv2_semivalid(x_in, shape, n_filters, pad_axes)
 
         with tf.Session() as sess:
@@ -193,10 +193,15 @@ def test_conv2_semivalid():
         eq_(y.shape, tuple(target_shape))
 
     for shape in [[1, 3], [3, 3], [5, 1], [1, None], [None, 1]]:
-        for pad_axes in [[0], [1]]:#, [0, 1]]:
-            test = __test
-            for i in range(len(shape)):
-                if shape[i] is None and i in pad_axes:
-                    test = raises(ValueError)(__test)
-            yield test, shape, pad_axes
+        for pad_axes in [[0], [1], [0, 1]]:
+            for shape_in in [[20, 7, 7, 8],
+                              [None, 7, 7, 8],
+                              [None, None, 7, 8]]:
+                test = __test
+                for i in range(len(shape)):
+                    if shape[i] is None and i in pad_axes:
+                        test = raises(ValueError)(__test)
+                    if shape[i] is None and shape_in[i+1] is None:
+                        test = raises(ValueError)(__test)
+                yield test, shape, shape_in, pad_axes
 
