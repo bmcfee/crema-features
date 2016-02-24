@@ -53,7 +53,7 @@ def dense_layer(input_tensor, n_units, name=None, nonlinearity=tf.nn.relu,
             sym = True
             default_bias = 0
 
-        weight = init.he_uniform(layer_shape, name='weight', sym=sym)
+        weight = init.he_normal(layer_shape, name='weight', sym=sym)
         bias = init.constant([n_units], name='bias', default=default_bias)
 
         response = tf.matmul(input_tensor, weight) + bias
@@ -153,9 +153,9 @@ def conv2_layer(input_tensor, shape, n_filters,
 
 
         if tied_init:
-            weight = init.he_uniform_tied(filter_shape, name='weight', sym=sym)
+            weight = init.he_normal_tied(filter_shape, name='weight', sym=sym)
         else:
-            weight = init.he_uniform(filter_shape, name='weight', sym=sym)
+            weight = init.he_normal(filter_shape, name='weight', sym=sym)
 
         if batch_norm:
             _response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode)
