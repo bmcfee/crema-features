@@ -150,6 +150,60 @@ def chord(features, name='chord'):
     return pitches, root, bass
 
 
+def chord_simple(features, name='chord_simple'):
+    '''Construct the submodule for simplified chord estimation
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input tensor to the module
+
+    name : str
+        The name of this subgraph
+
+    Returns
+    -------
+    pitches : tf.Tensor
+        Prediction nodes for pitch classes
+
+        pitches are n-by-time-by-12, encoding the probability that each
+        pitch class is active.
+    '''
+    # Set up the targets
+
+    target_pc = tf.placeholder(tf.bool, shape=[None, None, 12], name='output_pitches')
+    mask_chord = tf.placeholder(tf.bool, shape=[None], name='mask_chord')
+
+    with tf.name_scope(name):
+        z_chord = ops.expand_mask(mask_chord, name='mask_chord')
+
+        pitch_logit = layers.conv2_multilabel(features, 12,
+                                              squeeze_dims=[2],
+                                              name='pitches_module')
+
+        pitches = tf.exp(pitch_logit, name='pitches')
+
+        # Set up the losses
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_chord))
+            with tf.name_scope('pitches'):
+                pc_loss = tf.reduce_mean(z_chord *
+                                         tf.nn.sigmoid_cross_entropy_with_logits(pitch_logit,
+                                                                                 tf.to_float(target_pc)),
+                                         name='loss')
+
+    tf.add_to_collection('outputs', pitches)
+
+    tf.add_to_collection('inputs', target_pc)
+    tf.add_to_collection('inputs', mask_chord)
+
+    tf.add_to_collection('loss', pc_loss)
+
+    tf.scalar_summary('{:s}/pitches'.format(name), f_mask * pc_loss)
+
+    return pitches
+
+
 def tags_global(features, n_tags, name='tags_global'):
     '''Construct a global (time-independent) tag module
 
@@ -388,6 +442,8 @@ def make_output(features, spec):
     kwargs = dict(name=transformer.name)
     if isinstance(transformer, task.ChordTransformer):
         builder = chord
+    elif isinstance(transformer, task.SimpleChordTransformer):
+        builder = chord_simple
     elif isinstance(transformer, task.TimeSeriesLabelTransformer):
         builder = tags
         kwargs['n_tags'] = len(transformer.encoder.classes_)
