@@ -356,7 +356,7 @@ def regression(features, dimension, name='factor'):
                                         name='factor_conv')
 
         # Pool out the time dimension
-        conv_pool = tf.reduce_mean(conv_layer, reduction_indices=[1, 2])
+        conv_pool = tf.reduce_max(conv_layer, reduction_indices=[1, 2])
 
         vec_predict = layers.dense_layer(conv_pool,
                                          dimension,
