@@ -9,7 +9,7 @@ import pescador
 from sklearn.cross_validation import LabelShuffleSplit
 
 
-def jams_mapping(jams_in, task_map, validate=False):
+def jams_mapping(jams_in, task_map, validate=False, cache=None):
     '''Convert jams annotations to crema outputs.
 
     Given a jams file and a collection of TaskTransformers,
@@ -40,7 +40,10 @@ def jams_mapping(jams_in, task_map, validate=False):
 
     output = {}
     for task in task_map:
-        for key, value in six.iteritems(task.transform(jam)):
+        transform = task.transform
+        if cache is not None:
+            transform = cache.cache(transform)
+        for key, value in six.iteritems(transform(jam)):
             output[key] = np.asarray(value)[np.newaxis]
 
     return output
@@ -144,7 +147,7 @@ def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     '''
 
     # Convert the annotations
-    data = jams_mapping(jams_in, task_map)
+    data = jams_mapping(jams_in, task_map, cache=cache)
 
     # Load the audio data
     extract = crema_input.extract
