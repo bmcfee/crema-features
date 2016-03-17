@@ -86,6 +86,55 @@ def test_task_chord_absent():
     assert np.all(output['output_bass'][:, 12])
 
 
+def test_task_simple_chord_present():
+
+    # Construct a jam
+    jam = jams.JAMS(file_metadata=dict(duration=5.0))
+
+    ann = jams.Annotation(namespace='chord')
+
+    ann.append(time=0, duration=1.0, value='C:maj')
+    ann.append(time=1, duration=1.0, value='C:maj/3')
+    ann.append(time=3, duration=1.0, value='D:maj')
+    ann.append(time=4, duration=1.0, value='N')
+
+    jam.annotations.append(ann)
+
+    # One second = one frame
+    T = crema.task.SimpleChordTransformer()
+
+    output = T.transform(jam)
+
+    # Make sure we have the mask
+    eq_(output['mask_chord'], True)
+
+    # Ideal vectors:
+    # pcp = Cmaj, Cmaj, N, Dmaj, N
+    pcp_true = np.asarray([[1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                           [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+    assert np.allclose(output['output_pitches'], np.repeat(pcp_true, N_REPEAT, axis=0))
+
+def test_task_simple_chord_absent():
+
+    jam = jams.JAMS(file_metadata=dict(duration=4.0))
+    T = crema.task.SimpleChordTransformer()
+
+    output = T.transform(jam)
+
+    # Mask should be false since we have no matching namespace
+    eq_(output['mask_chord'], False)
+
+    # Check the shape
+    assert np.allclose(output['output_pitches'].shape, [4 * N_REPEAT, 12])
+
+    # Make sure it's empty
+    assert not np.any(output['output_pitches'])
+
+
 def test_task_tslabel_present():
     labels = ['alpha', 'beta', 'psycho', 'aqua', 'disco']
 

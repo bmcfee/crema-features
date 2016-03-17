@@ -110,7 +110,7 @@ def whiten(input_tensor, reduction_indices, s_min=1e-5, name=None):
     return zscored
 
 
-def gain(input_tensor, default=10.0, name=None):
+def gain(input_tensor, default=100.0, name=None):
     '''Band-parametric mu-law scaling.
 
     https://en.wikipedia.org/wiki/%CE%9C-law_algorithm

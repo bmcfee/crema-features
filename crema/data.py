@@ -9,7 +9,7 @@ import pescador
 from sklearn.cross_validation import LabelShuffleSplit
 
 
-def jams_mapping(jams_in, task_map, validate=False):
+def jams_mapping(jams_in, task_map, validate=False, cache=None):
     '''Convert jams annotations to crema outputs.
 
     Given a jams file and a collection of TaskTransformers,
@@ -40,7 +40,10 @@ def jams_mapping(jams_in, task_map, validate=False):
 
     output = {}
     for task in task_map:
-        for key, value in six.iteritems(task.transform(jam)):
+        transform = task.transform
+        if cache is not None:
+            transform = cache.cache(transform)
+        for key, value in six.iteritems(transform(jam)):
             output[key] = np.asarray(value)[np.newaxis]
 
     return output
@@ -144,7 +147,7 @@ def make_task_data(audio_in, jams_in, task_map, crema_input, cache=None):
     '''
 
     # Convert the annotations
-    data = jams_mapping(jams_in, task_map)
+    data = jams_mapping(jams_in, task_map, cache=cache)
 
     # Load the audio data
     extract = crema_input.extract
@@ -203,7 +206,7 @@ def sampler(audio_in, jams_in, task_map, crema_input, n_samples, n_duration, cac
 
 
 def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
-                  n_alive=32, cache=None, thread=False, keys=None):
+                  n_alive=32, cache=None, thread=False, keys=None, timeout=None):
     '''Create a crema data stream
 
     Parameters
@@ -236,6 +239,9 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
         If given, only elements of `sources` belonging to `keys` will be
         processed
 
+    timeout : None or number > 0
+        Optional timeout to kill background threads
+
     Returns
     -------
     mux : pescador.Streamer
@@ -252,10 +258,11 @@ def create_stream(sources, tasks, crema_input, n_per_track=128, n_duration=16,
              for audf, jamf in zip(sources.audio, sources.jams)]
 
     # Multiplex these seeds together
-    streamer = pescador.Streamer(pescador.mux, seeds, None, n_alive)
+    streamer = pescador.Streamer(pescador.mux, seeds, None, n_alive,
+                                 with_replacement=False, revive=True)
 
     if thread:
-        return pescador.Streamer(pescador.zmq_stream, streamer)
+        return pescador.Streamer(pescador.zmq_stream, streamer, timeout=timeout)
     else:
         return streamer
 

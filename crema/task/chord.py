@@ -78,3 +78,53 @@ class ChordTransformer(BaseTaskTransformer):
                 'output_root': _pad_nochord(target_root),
                 'output_bass': _pad_nochord(target_bass),
                 'mask_chord': mask}
+
+
+class SimpleChordTransformer(BaseTaskTransformer):
+
+    def __init__(self, name='chord_simple'):
+        '''Initialize a chord task transformer.
+
+        This version of the task includes only pitch classes, but not root or bass.
+        '''
+
+        super(SimpleChordTransformer, self).__init__('chord|chord_harte', 0)
+
+        pitches = list(range(12))
+        self.encoder = MultiLabelBinarizer()
+        self.encoder.fit([pitches])
+        self._classes = set(self.encoder.classes_)
+        self.name = name
+
+    def transform(self, jam):
+
+        ann = self.find_annotation(jam)
+
+        # Construct a blank annotation with mask = 0
+        intervals = np.asarray([[0.0, jam.file_metadata.duration]])
+        chords = ['N']
+        mask = False
+        if ann:
+            ann_ints, ann_chords = ann.data.to_interval_values()
+            intervals = np.vstack([intervals, ann_ints])
+            chords.extend(ann_chords)
+            mask = True
+
+        # Suppress all intervals not in the encoder
+        pitch = []
+
+        for c in chords:
+            # Encode the pitches
+            r, s, b = mir_eval.chord.encode(c)
+            s = np.roll(s, r)
+
+            pitch.append(s)
+
+        pitch = np.asarray(pitch)
+
+        target_pitch = self.encode_intervals(jam.file_metadata.duration,
+                                             intervals, pitch)
+
+        return {'output_pitches': target_pitch,
+                'mask_chord': mask}
+

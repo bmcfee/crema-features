@@ -7,7 +7,7 @@ import scipy
 import scipy.stats
 import tensorflow as tf
 from decorator import decorator
-from nose.tools import eq_
+from nose.tools import eq_, raises
 
 import crema
 
@@ -17,6 +17,10 @@ def new_graph(f, *args, **kwargs):
     np.random.seed(1234)
     g = tf.Graph()
     with g.as_default():
+        # Build the is-training node
+        is_training = tf.constant(True, dtype=tf.bool, name='is_training')
+        tf.add_to_collection('global', is_training)
+
         return f(*args, **kwargs)
 
 
@@ -153,3 +157,51 @@ def test_conv2_softmax():
 
     assert np.all(y >= 0) and np.all(y <= 1.0)
     assert np.allclose(np.sum(y, axis=-1), np.ones(y.shape[:-1]))
+
+
+def test_conv2_semivalid():
+
+    @new_graph
+    def __test(shape, shape_in, pad_axes):
+        # Our input batch
+        x = np.random.randn(20, 7, 7, 8)
+
+        n_filters = 2
+
+        x_in = tf.placeholder(tf.float32, shape=shape_in, name='x')
+        output = crema.model.layers.conv2_semivalid(x_in, shape, n_filters, pad_axes)
+
+        with tf.Session() as sess:
+            sess.run(tf.initialize_all_variables())
+            y = sess.run(output, feed_dict={x_in: x})
+
+        s1, s2 = x.shape[1:3]
+
+        shape = list(shape)
+
+        for i in [0, 1]:
+            if shape[i] is None:
+                shape[i] = x.shape[i+1]
+
+        if 0 not in pad_axes:
+            s1 = s1 - shape[0] + 1
+        if 1 not in pad_axes:
+            s2 = s2 - shape[1] + 1
+
+        target_shape = [x.shape[0], s1, s2, n_filters]
+
+        eq_(y.shape, tuple(target_shape))
+
+    for shape in [[1, 3], [3, 3], [5, 1], [1, None], [None, 1]]:
+        for pad_axes in [[0], [1], [0, 1]]:
+            for shape_in in [[20, 7, 7, 8],
+                              [None, 7, 7, 8],
+                              [None, None, 7, 8]]:
+                test = __test
+                for i in range(len(shape)):
+                    if shape[i] is None and i in pad_axes:
+                        test = raises(ValueError)(__test)
+                    if shape[i] is None and shape_in[i+1] is None:
+                        test = raises(ValueError)(__test)
+                yield test, shape, shape_in, pad_axes
+

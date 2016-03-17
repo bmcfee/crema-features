@@ -53,7 +53,7 @@ def dense_layer(input_tensor, n_units, name=None, nonlinearity=tf.nn.relu,
             sym = True
             default_bias = 0
 
-        weight = init.he_uniform(layer_shape, name='weight', sym=sym)
+        weight = init.he_normal(layer_shape, name='weight', sym=sym)
         bias = init.constant([n_units], name='bias', default=default_bias)
 
         response = tf.matmul(input_tensor, weight) + bias
@@ -77,7 +77,8 @@ def conv2_layer(input_tensor, shape, n_filters,
                 squeeze_dims=None,
                 reg=False,
                 batch_norm=False,
-                nl_kwargs=None):
+                nl_kwargs=None,
+                tied_init=False):
     '''A 2-dimensional convolution layer.
 
     Parameters
@@ -126,7 +127,10 @@ def conv2_layer(input_tensor, shape, n_filters,
     # If a shape is None, make it span the full extent of that input dimension
     shape = list(shape)
     for i in [0, 1]:
+
         if shape[i] is None:
+            if x_shape[i+1].value is None:
+                raise ValueError('Cannot infer filter shape on dimension {}'.format(i+1))
             shape[i] = int(x_shape[i+1])
 
     filter_shape = [shape[0], shape[1], int(x_shape[-1]), n_filters]
@@ -151,7 +155,10 @@ def conv2_layer(input_tensor, shape, n_filters,
             default_bias = 0
 
 
-        weight = init.he_uniform(filter_shape, name='weight', sym=sym)
+        if tied_init:
+            weight = init.he_normal_tied(filter_shape, name='weight', sym=sym)
+        else:
+            weight = init.he_normal(filter_shape, name='weight', sym=sym)
 
         if batch_norm:
             _response = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=mode)
@@ -262,6 +269,48 @@ def conv2_softmax(x, n_classes, name=None, squeeze_dims=None, mode='SAME', reg=T
                        nl_kwargs=dict(reduction_indices=[2, 3]),
                        squeeze_dims=squeeze_dims,
                        reg=reg)
+
+
+def conv2_semivalid(input_tensor, shape, n_filters, pad_axes, **kwargs):
+    '''A 2D convolution that is valid-mode along one axis and same-mode along
+    the other.
+
+
+    Parameters
+    ----------
+    input_tensor : tf.Tensor
+        The input tensor
+
+    shape : list of int
+        The dimensions of the convolutional filters [width, height]
+
+    n_filters : int
+        The number of filters for this layer
+
+    pad_axes : list
+        The dimensions which should have same-mode
+
+    **kwargs
+        Additional keyword arguments to conv2_layer
+
+    Returns
+    -------
+    output : tf.Operator
+        The output node of the layer
+    '''
+
+    paddings = [(0, 0)] * len(input_tensor.get_shape())
+
+    for dim in pad_axes:
+        if shape[dim] is not None:
+            npad = (shape[dim] - 1)//2
+            paddings[1+dim] = (npad, npad)
+        else:
+            raise ValueError('Cannot same-mode pad an implicitly shaped dimension')
+
+    kwargs['mode'] = 'VALID'
+
+    return conv2_layer(tf.pad(input_tensor, paddings), shape, n_filters, **kwargs)
 
 
 def __get_global(name, collection='global', scope=None):

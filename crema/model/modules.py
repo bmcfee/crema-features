@@ -57,6 +57,45 @@ def shared(inputs, layer_defs=None, name='shared'):
 
     return variables[layer_out]
 
+def priv(features, layer_defs=None, name='priv'):
+    '''Create a mid-level private feature extraction module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        A collection of input variables
+
+    layer_defs : list
+        A list of layer specifications
+
+    name : str
+        The name for this subgraph
+
+    Returns
+    -------
+    features_priv : tf.Tensor
+        The output node of the final layer
+    '''
+
+    layer_defs = copy.deepcopy(layer_defs)
+
+    variables = {'features': features}
+
+    with tf.name_scope(name):
+        for layer in layer_defs:
+
+            for node, params in layer.items():
+                layer_in = variables[params.pop('input')]
+                layer_out = params.get('name')
+
+                try:
+                    operator = getattr(ops, node)
+                except AttributeError:
+                    operator = getattr(layers, node)
+
+                variables[layer_out] = operator(layer_in, **params)
+
+    return variables[layer_out]
 
 def chord(features, name='chord'):
     '''Construct the submodule for chord estimation
@@ -148,6 +187,60 @@ def chord(features, name='chord'):
     tf.scalar_summary('{:s}/bass'.format(name), f_mask * bass_loss)
 
     return pitches, root, bass
+
+
+def chord_simple(features, name='chord_simple'):
+    '''Construct the submodule for simplified chord estimation
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input tensor to the module
+
+    name : str
+        The name of this subgraph
+
+    Returns
+    -------
+    pitches : tf.Tensor
+        Prediction nodes for pitch classes
+
+        pitches are n-by-time-by-12, encoding the probability that each
+        pitch class is active.
+    '''
+    # Set up the targets
+
+    target_pc = tf.placeholder(tf.bool, shape=[None, None, 12], name='output_pitches')
+    mask_chord = tf.placeholder(tf.bool, shape=[None], name='mask_chord')
+
+    with tf.name_scope(name):
+        z_chord = ops.expand_mask(mask_chord, name='mask_chord')
+
+        pitch_logit = layers.conv2_multilabel(features, 12,
+                                              squeeze_dims=[2],
+                                              name='pitches_module')
+
+        pitches = tf.exp(pitch_logit, name='pitches')
+
+        # Set up the losses
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_chord))
+            with tf.name_scope('pitches'):
+                pc_loss = tf.reduce_mean(z_chord *
+                                         tf.nn.sigmoid_cross_entropy_with_logits(pitch_logit,
+                                                                                 tf.to_float(target_pc)),
+                                         name='loss')
+
+    tf.add_to_collection('outputs', pitches)
+
+    tf.add_to_collection('inputs', target_pc)
+    tf.add_to_collection('inputs', mask_chord)
+
+    tf.add_to_collection('loss', pc_loss)
+
+    tf.scalar_summary('{:s}/pitches'.format(name), f_mask * pc_loss)
+
+    return pitches
 
 
 def tags_global(features, n_tags, name='tags_global'):
@@ -264,6 +357,71 @@ def tags(features, n_tags, name='tags'):
     return tag_predict
 
 
+def deep_tags(features, n_tags, name='tags'):
+    '''Construct a time-varying deep tag module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input features to predict from
+
+    n_tags : int > 0
+        The number of output tags
+
+    name : str
+        A name for this submodule
+
+
+    Returns
+    -------
+    tags : tf.Tensor
+        The prediction output for this module: probability for each tag being active at
+        each time.
+    '''
+    target_tags = tf.placeholder(tf.bool, shape=[None, None, n_tags], name='output_{:s}'.format(name))
+    mask_tags = tf.placeholder(tf.bool, shape=[None], name='mask_{:s}'.format(name))
+
+    with tf.name_scope(name):
+        z_tag = ops.expand_mask(mask_tags, name='mask_tag')
+
+        conv_layer = layers.conv2_layer(features,
+                                        [1, 1],
+                                        n_tags * 8,
+                                        mode='VALID',
+                                        batch_norm=True,
+                                        name='factor_conv')
+
+        # Make the logits
+        tag_logit = layers.conv2_multilabel(conv_layer, n_tags, squeeze_dims=[2],
+                                            name='tag_module')
+
+
+
+        # Mean-pool the logits over time
+        tag_predict = tf.exp(tag_logit, name='tags_{:s}'.format(name))
+
+        # Set up the losses
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_tag))
+
+            with tf.name_scope('tag'):
+                tag_loss = tf.reduce_mean(z_tag *
+                                          tf.nn.sigmoid_cross_entropy_with_logits(tag_logit,
+                                                                                  tf.to_float(target_tags)),
+                                          name='loss')
+
+    tf.add_to_collection('outputs', tag_predict)
+
+    tf.add_to_collection('inputs', target_tags)
+    tf.add_to_collection('inputs', mask_tags)
+
+    tf.add_to_collection('loss', tag_loss)
+
+    tf.scalar_summary('tags/{:s}'.format(name), f_mask * tag_loss)
+
+    return tag_predict
+
+
 def regression(features, dimension, name='factor'):
     '''Construct a linear regression layer
 
@@ -298,14 +456,11 @@ def regression(features, dimension, name='factor'):
                                         [1, 1],
                                         dimension * 8,
                                         mode='VALID',
+                                        batch_norm=True,
                                         name='factor_conv')
 
         # Pool out the time dimension
-        with tf.name_scope('pooling'):
-            conv_maxpool = tf.reduce_max(conv_layer, reduction_indices=[1, 2])
-            conv_meanpool = tf.reduce_mean(conv_layer, reduction_indices=[1, 2])
-
-            conv_pool = tf.concat(1, [conv_maxpool, conv_meanpool])
+        conv_pool = tf.reduce_max(conv_layer, reduction_indices=[1, 2])
 
         vec_predict = layers.dense_layer(conv_pool,
                                          dimension,
@@ -391,8 +546,14 @@ def make_output(features, spec):
     kwargs = dict(name=transformer.name)
     if isinstance(transformer, task.ChordTransformer):
         builder = chord
+    elif isinstance(transformer, task.SimpleChordTransformer):
+        builder = chord_simple
     elif isinstance(transformer, task.TimeSeriesLabelTransformer):
-        builder = tags
+        if spec.get('deep', True):
+            builder = deep_tags
+        else:
+            builder = tags
+
         kwargs['n_tags'] = len(transformer.encoder.classes_)
     elif isinstance(transformer, task.GlobalLabelTransformer):
         builder = tags_global
