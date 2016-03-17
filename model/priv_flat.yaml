@@ -1,0 +1,9 @@
+name: priv
+layers:
+    - conv2_semivalid:
+        input: features
+        shape: [5, null]
+        n_filters: 256
+        pad_axes: [0]
+        batch_norm: True
+        name: features_priv

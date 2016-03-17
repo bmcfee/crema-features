@@ -57,6 +57,45 @@ def shared(inputs, layer_defs=None, name='shared'):
 
     return variables[layer_out]
 
+def priv(features, layer_defs=None, name='priv'):
+    '''Create a mid-level private feature extraction module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        A collection of input variables
+
+    layer_defs : list
+        A list of layer specifications
+
+    name : str
+        The name for this subgraph
+
+    Returns
+    -------
+    features_priv : tf.Tensor
+        The output node of the final layer
+    '''
+
+    layer_defs = copy.deepcopy(layer_defs)
+
+    variables = {'features': features}
+
+    with tf.name_scope(name):
+        for layer in layer_defs:
+
+            for node, params in layer.items():
+                layer_in = variables[params.pop('input')]
+                layer_out = params.get('name')
+
+                try:
+                    operator = getattr(ops, node)
+                except AttributeError:
+                    operator = getattr(layers, node)
+
+                variables[layer_out] = operator(layer_in, **params)
+
+    return variables[layer_out]
 
 def chord(features, name='chord'):
     '''Construct the submodule for chord estimation
