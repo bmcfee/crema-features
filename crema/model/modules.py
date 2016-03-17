@@ -318,6 +318,71 @@ def tags(features, n_tags, name='tags'):
     return tag_predict
 
 
+def deep_tags(features, n_tags, name='tags'):
+    '''Construct a time-varying deep tag module
+
+    Parameters
+    ----------
+    features : tf.Tensor
+        The input features to predict from
+
+    n_tags : int > 0
+        The number of output tags
+
+    name : str
+        A name for this submodule
+
+
+    Returns
+    -------
+    tags : tf.Tensor
+        The prediction output for this module: probability for each tag being active at
+        each time.
+    '''
+    target_tags = tf.placeholder(tf.bool, shape=[None, None, n_tags], name='output_{:s}'.format(name))
+    mask_tags = tf.placeholder(tf.bool, shape=[None], name='mask_{:s}'.format(name))
+
+    with tf.name_scope(name):
+        z_tag = ops.expand_mask(mask_tags, name='mask_tag')
+
+        conv_layer = layers.conv2_layer(features,
+                                        [1, 1],
+                                        n_tags * 8,
+                                        mode='VALID',
+                                        batch_norm=True,
+                                        name='factor_conv')
+
+        # Make the logits
+        tag_logit = layers.conv2_multilabel(conv_layer, n_tags, squeeze_dims=[2],
+                                            name='tag_module')
+
+
+
+        # Mean-pool the logits over time
+        tag_predict = tf.exp(tag_logit, name='tags_{:s}'.format(name))
+
+        # Set up the losses
+        with tf.name_scope('loss'):
+            f_mask = tf.inv(tf.reduce_mean(z_tag))
+
+            with tf.name_scope('tag'):
+                tag_loss = tf.reduce_mean(z_tag *
+                                          tf.nn.sigmoid_cross_entropy_with_logits(tag_logit,
+                                                                                  tf.to_float(target_tags)),
+                                          name='loss')
+
+    tf.add_to_collection('outputs', tag_predict)
+
+    tf.add_to_collection('inputs', target_tags)
+    tf.add_to_collection('inputs', mask_tags)
+
+    tf.add_to_collection('loss', tag_loss)
+
+    tf.scalar_summary('tags/{:s}'.format(name), f_mask * tag_loss)
+
+    return tag_predict
+
+
 def regression(features, dimension, name='factor'):
     '''Construct a linear regression layer
 
@@ -445,7 +510,11 @@ def make_output(features, spec):
     elif isinstance(transformer, task.SimpleChordTransformer):
         builder = chord_simple
     elif isinstance(transformer, task.TimeSeriesLabelTransformer):
-        builder = tags
+        if spec.get('deep', True):
+            builder = deep_tags
+        else:
+            builder = tags
+
         kwargs['n_tags'] = len(transformer.encoder.classes_)
     elif isinstance(transformer, task.GlobalLabelTransformer):
         builder = tags_global
